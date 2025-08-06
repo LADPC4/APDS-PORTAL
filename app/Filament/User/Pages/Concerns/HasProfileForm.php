@@ -27,18 +27,6 @@ trait HasProfileForm
                         ->columnSpan('full'),
 
                     Grid::make(2)->schema([
-                        // Select::make('classification')
-                        //     ->label('Classification')
-                        //     ->options([
-                        //         'Banks' => 'Banks',
-                        //         'Cooperatives' => 'Cooperatives',
-                        //         'Cooperative Banks' => 'Cooperative Banks',
-                        //         'Insurance Companies' => 'Insurance Companies',
-                        //         'Teachers Association' => 'Teachers Association',
-                        //         'Savings and Loans Associations' => 'Savings and Loans Associations',
-                        //     ])
-                        //     ->required()
-                        //     ->disabled($isDisabled),
 
                         Select::make('classification_id')
                             ->label('Classification')
@@ -46,29 +34,6 @@ trait HasProfileForm
                             ->required()
                             ->disabled($isDisabled)
                             ->searchable(),
-
-                        // Select::make('region')
-                        //     ->label('Region')
-                        //     ->options([
-                        //         'CAR'   => 'Cordillera Administrative Region',
-                        //         'NCR'   => 'National Capital Region',
-                        //         'R01'   => 'Region I: Ilocos Region',
-                        //         'R02'   => 'Region II: Cagayan Valley',
-                        //         'R03'   => 'Region III: Central Luzon',
-                        //         'R04A'  => 'Region IV-A: CALABARZON',
-                        //         'R04B'  => 'Region IV-B: MIMAROPA Region',
-                        //         'R05'   => 'Region V: Bicol Region',
-                        //         'R06'   => 'Region VI: Western Visayas',
-                        //         'R07'   => 'Region VII: Central Visayas',
-                        //         'R08'   => 'Region VIII: Eastern Visayas',
-                        //         'R09'   => 'Region IX: Zamboanga Peninsula',
-                        //         'R10'   => 'Region X: Northern Mindanao',
-                        //         'R11'   => 'Region XI: Davao Region',
-                        //         'R12'   => 'Region XII: SOCCSKSARGEN',
-                        //         'R13'   => 'Region XIII: Caraga',
-                        //     ])
-                        //     ->required()
-                        //     ->disabled($isDisabled),
                             
                         Select::make('region')
                             ->label('Regions Covered')
@@ -107,32 +72,40 @@ trait HasProfileForm
             ]),
 
             Grid::make(3)->schema([
-                Fieldset::make('Authorized Representative 1')->schema([
-                    TextInput::make('AR1_Name')->label('Name')->disabled($isDisabled)->columnSpan('full'),
-                    TextInput::make('AR1_Designation')->label('Designation or Position')->disabled($isDisabled)->columnSpan('full'),
-                    TextInput::make('AR1_Contact')->label('Contact Number')->disabled($isDisabled)->columnSpan('full'),
-                    TextInput::make('AR1_Email')->label('Email')->email()->disabled($isDisabled)->columnSpan('full'),
-                ])
-                ->columnSpan(1),
+                    Fieldset::make('Authorized Representative 1')->schema([
+                        TextInput::make('AR1_FN')->label('First Name')->disabled($isDisabled)->columnSpan('full'),
+                        TextInput::make('AR1_MN')->label('Middle Name')->disabled($isDisabled)->columnSpan('full'),
+                        TextInput::make('AR1_LN')->label('Last Name')->disabled($isDisabled)->columnSpan('full'),
+                        TextInput::make('AR1_Designation')->label('Designation or Position')->disabled($isDisabled)->columnSpan('full'),
+                        TextInput::make('AR1_Contact')->label('Contact Number')->disabled($isDisabled)->columnSpan('full'),
+                        TextInput::make('AR1_Email')->label('Email')->email()->disabled($isDisabled)->columnSpan('full'),
+                    ])
+                    ->columnSpan(1),
 
-                Fieldset::make('Authorized Representative 2')->schema([
-                    TextInput::make('AR2_Name')->label('Name')->disabled($isDisabled)->columnSpan('full'),
-                    TextInput::make('AR2_Designation')->label('Designation or Position')->disabled($isDisabled)->columnSpan('full'),
-                    TextInput::make('AR2_Contact')->label('Contact Number')->disabled($isDisabled)->columnSpan('full'),
-                    TextInput::make('AR2_Email')->label('Email')->email()->disabled($isDisabled)->columnSpan('full'),
-                ])
-                ->columnSpan(1),
+                    Fieldset::make('Authorized Representative 2')->schema([
+                        // TextInput::make('AR2_Name')->label('Name')->disabled($isDisabled)->columnSpan('full'),
+                        TextInput::make('AR2_FN')->label('First Name')->disabled($isDisabled)->columnSpan('full'),
+                        TextInput::make('AR2_MN')->label('Middle Name')->disabled($isDisabled)->columnSpan('full'),
+                        TextInput::make('AR2_LN')->label('Last Name')->disabled($isDisabled)->columnSpan('full'),
+                        TextInput::make('AR2_Designation')->label('Designation or Position')->disabled($isDisabled)->columnSpan('full'),
+                        TextInput::make('AR2_Contact')->label('Contact Number')->disabled($isDisabled)->columnSpan('full'),
+                        TextInput::make('AR2_Email')->label('Email')->email()->disabled($isDisabled)->columnSpan('full'),
+                    ])
+                    ->columnSpan(1),
 
-                Fieldset::make('Authorized Representative 3')->schema([
-                    TextInput::make('AR3_Name')->label('Name')->disabled($isDisabled)->columnSpan('full'),
-                    TextInput::make('AR3_Designation')->label('Designation or Position')->disabled($isDisabled)->columnSpan('full'),
-                    TextInput::make('AR3_Contact')->label('Contact Number')->disabled($isDisabled)->columnSpan('full'),
-                    TextInput::make('AR3_Email')->label('Email')->email()->disabled($isDisabled)->columnSpan('full'),
-                ])
-                ->columnSpan(1),
-            ]),
+                    Fieldset::make('Authorized Representative 3')->schema([
+                        // TextInput::make('AR3_Name')->label('Name')->disabled($isDisabled)->columnSpan('full'),
+                        TextInput::make('AR3_FN')->label('First Name')->disabled($isDisabled)->columnSpan('full'),
+                        TextInput::make('AR3_MN')->label('Middle Name')->disabled($isDisabled)->columnSpan('full'),
+                        TextInput::make('AR3_LN')->label('Last Name')->disabled($isDisabled)->columnSpan('full'),
+                        TextInput::make('AR3_Designation')->label('Designation or Position')->disabled($isDisabled)->columnSpan('full'),
+                        TextInput::make('AR3_Contact')->label('Contact Number')->disabled($isDisabled)->columnSpan('full'),
+                        TextInput::make('AR3_Email')->label('Email')->email()->disabled($isDisabled)->columnSpan('full'),
+                    ])
+                    ->columnSpan(1),
+                ]),
 
-        ])
+            ])
         ];
     }
 }

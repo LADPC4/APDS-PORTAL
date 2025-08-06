@@ -12,8 +12,6 @@ use Illuminate\Support\Facades\Auth;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Concerns\InteractsWithForms;
 use App\Filament\User\Pages\Concerns\HasProfileForm;
-use App\Models\Classification;
-use App\Models\Region;
 
 class ProfileView extends Page implements HasForms
 {
@@ -62,64 +60,49 @@ class ProfileView extends Page implements HasForms
 
     public function mount(): void
     {
-        // $user = Auth::user();
-
         $this->user = Auth::user()->load('classification');
-        
 
-        $this->name = $this->user->name;
-        $this->email = $this->user->email;
-        $this->contact_number = $this->user->contact_number;
-        $this->address = $this->user->address;
-        $this->classification_id = $this->user->classification_id;
-        $this->region = $this->user->region;
+        $user = Auth::user();
 
-        $this->AR1_FN = $this->user->AR1_FN;
-        $this->AR1_MN = $this->user->AR1_MN;
-        $this->AR1_LN = $this->user->AR1_LN;
-        $this->AR1_Designation = $this->user->AR1_Designation;
-        $this->AR1_Contact = $this->user->AR1_Contact;
-        $this->AR1_Email = $this->user->AR1_Email;
+        $this->name = $user->name;
+        $this->email = $user->email;
+        $this->contact_number = $user->contact_number;
+        $this->address = $user->address;
+        $this->classification_id = $user->classification_id;
+        $this->region = $user->region;
 
-        $this->AR2_FN = $this->user->AR2_FN;
-        $this->AR2_MN = $this->user->AR2_MN;
-        $this->AR2_LN = $this->user->AR2_LN;
-        $this->AR2_Designation = $this->user->AR2_Designation;
-        $this->AR2_Contact = $this->user->AR2_Contact;
-        $this->AR2_Email = $this->user->AR2_Email;
+        $this->AR1_FN = $user->AR1_FN;
+        $this->AR1_MN = $user->AR1_MN;
+        $this->AR1_LN = $user->AR1_LN;
+        $this->AR1_Designation = $user->AR1_Designation;
+        $this->AR1_Contact = $user->AR1_Contact;
+        $this->AR1_Email = $user->AR1_Email;
 
-        $this->AR3_FN = $this->user->AR3_FN;
-        $this->AR3_MN = $this->user->AR3_MN;
-        $this->AR3_LN = $this->user->AR3_LN;
-        $this->AR3_Designation = $this->user->AR3_Designation;
-        $this->AR3_Contact = $this->user->AR3_Contact;
-        $this->AR3_Email = $this->user->AR3_Email;
+        $this->AR2_FN = $user->AR2_FN;
+        $this->AR2_MN = $user->AR2_MN;
+        $this->AR2_LN = $user->AR2_LN;
+        $this->AR2_Designation = $user->AR2_Designation;
+        $this->AR2_Contact = $user->AR2_Contact;
+        $this->AR2_Email = $user->AR2_Email;
+
+        $this->AR3_FN = $user->AR3_FN;
+        $this->AR3_MN = $user->AR3_MN;
+        $this->AR3_LN = $user->AR3_LN;
+        $this->AR3_Designation = $user->AR3_Designation;
+        $this->AR3_Contact = $user->AR3_Contact;
+        $this->AR3_Email = $user->AR3_Email;
 
         $this->form->fill([
             'name' => $this->name,
             'email' => $this->email,
             'contact_number' => $this->contact_number,
             'address' => $this->address,
-            'classification_id' => $this->classification_id, 
-            'region' => $this->region,
         ]);
     }
 
     protected function getFormSchema(): array
     {
         return $this->getProfileFormSchema(true); // view-only
-    }
-
-    public function getRegionNamesProperty(): array
-    {
-        $codes = is_array($this->region)
-            ? $this->region
-            : (is_string($this->region) ? json_decode($this->region, true) : []);
-
-        return Region::whereIn('code', $codes)
-            ->orderBy('name', 'asc')  // Sort by region name ascending
-            ->pluck('name')
-            ->toArray();
     }
 
     protected function getHeaderActions(): array

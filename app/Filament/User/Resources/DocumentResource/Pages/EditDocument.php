@@ -10,12 +10,12 @@ class EditDocument extends EditRecord
 {
     protected static string $resource = DocumentResource::class;
 
-    protected function getHeaderActions(): array
-    {
-        return [
-            Actions\DeleteAction::make(),
-        ];
-    }
+    // protected function getHeaderActions(): array
+    // {
+    //     return [
+    //         Actions\DeleteAction::make(),
+    //     ];
+    // }
     
     // public function authorize(): bool
     // {

@@ -1,6 +1,7 @@
 <?php
 
-namespace App\Filament\Resources\RegistrantResource\RelationManagers;
+// namespace App\Filament\Resources\RegistrantResource\RelationManagers;
+namespace App\Filament\Resources\RegistrantResource\Pages\RelationManagers;
 
 use Filament\Forms;
 use Filament\Tables;

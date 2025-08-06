@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\Hidden;
 use Illuminate\Support\Facades\Auth;
+use Filament\Tables\Filters\SelectFilter;
 
 class DocumentResource extends Resource
 {
@@ -44,40 +45,64 @@ class DocumentResource extends Resource
     {
         return $form
             ->schema([
+                // TextInput::make('name')
+                //     ->label('Document Name')
+                //     ->required()
+                //     ->maxLength(255),
+
+                // Hidden::make('user_id')
+                //     ->default(fn () => Auth::id())
+                //     ->dehydrated(),
+
+                // FileUpload::make('file_path')
+                //     ->label('Upload File Sample')
+                //     ->disk('public')
+                //     ->directory('uploads')
+                //     ->storeFiles() // ✅ this is required to skip temp upload validation
+                //     ->maxSize(204800) // ✅ 200MB in KB
+                //     ->rules(['file', 'max:204800']) // ✅ server-side rule
+                //     ->required()
+                //     ->getUploadedFileNameForStorageUsing(fn ($file) => $file->hashName())
+                //     ->enableOpen()
+                //     ->previewable(false),
+                
                 TextInput::make('name')
                     ->label('Document Name')
-                    ->required()
-                    ->maxLength(255),
+                    ->disabled() // user cannot change document name
+                    ->required(),
 
                 Hidden::make('user_id')
                     ->default(fn () => Auth::id())
                     ->dehydrated(),
 
-                // FileUpload::make('file_path')
-                //     ->label('Upload File')
-                //     ->directory('uploads')
-                //     ->disk('public')
-                //     ->visibility('public')
-                //     ->required()
-                //     // ->maxSize(10240) // 10 MB max
-                //     // ->getUploadedFileNameForStorageUsing(fn ($file) => $file->hashName()), 
-                //     ->getUploadedFileNameForStorageUsing(fn ($file) => $file->hashName())
-                //     // ->enableDownload()
-                //     ->enableOpen()
-                //     ->previewable(false),
-
                 FileUpload::make('file_path')
-                    ->label('Upload File Sample')
+                    ->label('Upload File')
                     ->disk('public')
                     ->directory('uploads')
-                    ->storeFiles() // ✅ this is required to skip temp upload validation
-                    ->maxSize(204800) // ✅ 200MB in KB
-                    ->rules(['file', 'max:204800']) // ✅ server-side rule
-                    ->required()
+                    ->storeFiles()
+                    ->maxSize(204800) // 200 MB
+                    ->rules(['file', 'max:204800'])
+                    ->required(fn ($record) => !$record->file_path) // only require if no file yet
                     ->getUploadedFileNameForStorageUsing(fn ($file) => $file->hashName())
                     ->enableOpen()
                     ->previewable(false),
 
+                Forms\Components\Select::make('status')
+                    ->label('Status')
+                    ->options([
+                        'Pending' => 'Pending',
+                        'Approved' => 'Approved',
+                        'Rejected' => 'Rejected',
+                    ])
+                    ->default('Pending')
+                    ->required()
+                    ->disabled(fn () => Auth::user()->usertype === 'user'),
+
+                Forms\Components\Textarea::make('remark')
+                    ->label('Remark')
+                    ->rows(3)
+                    ->nullable()
+                    ->disabled(fn () => Auth::user()->usertype === 'user'),
             ]);
     }
 
@@ -85,26 +110,45 @@ class DocumentResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('name')
-                    ->label('Name')
-                    ->sortable()
-                    ->searchable(),
-
+                TextColumn::make('name')->label('Document Name')->sortable()->searchable(),
+                TextColumn::make('status')->label('Status')->sortable(),
+                TextColumn::make('remark')->label('Remark')->limit(50),
                 TextColumn::make('file_path')
-                    ->label('View')
-                    ->formatStateUsing(fn ($state, $record) => $state
+                    ->label('View File')
+                    ->formatStateUsing(fn ($state) => $state
                         ? '<a href="' . asset('storage/' . $state) . '" target="_blank" class="text-blue-600 underline">View</a>'
-                        : '-'
-                    )
+                        : '-')
                     ->html(),
+                TextColumn::make('created_at')->label('Uploaded At')->dateTime()->sortable(),
+                
+                // TextColumn::make('name')
+                //     ->label('Name')
+                //     ->sortable()
+                //     ->searchable(),
 
-                TextColumn::make('created_at')
-                    ->label('Uploaded At')
-                    ->dateTime()
-                    ->sortable(),
+                // TextColumn::make('file_path')
+                //     ->label('View')
+                //     ->formatStateUsing(fn ($state, $record) => $state
+                //         ? '<a href="' . asset('storage/' . $state) . '" target="_blank" class="text-blue-600 underline">View</a>'
+                //         : '-'
+                //     )
+                //     ->html(),
+
+                // TextColumn::make('created_at')
+                //     ->label('Uploaded At')
+                //     ->dateTime()
+                //     ->sortable(),
             ])
             ->filters([
-                //
+                SelectFilter::make('status')
+                    ->label('Filter by Status')
+                    ->options([
+                        'Pending' => 'Pending',
+                        'Submitted' => 'Submitted',
+                        'for-revision' => 'For Revision',
+                        'Approved' => 'Approved',
+                        'Rejected' => 'Rejected',
+                    ])
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -113,7 +157,8 @@ class DocumentResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->headerActions([]);
     }
 
     public static function getRelations(): array
@@ -127,7 +172,7 @@ class DocumentResource extends Resource
     {
         return [
             'index' => Pages\ListDocuments::route('/'),
-            'create' => Pages\CreateDocument::route('/create'),
+            // 'create' => Pages\CreateDocument::route('/create'),
             'edit' => Pages\EditDocument::route('/{record}/edit'),
         ];
     }

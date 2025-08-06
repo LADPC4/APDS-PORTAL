@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\Document;
 
 class User extends Authenticatable
 {
@@ -30,9 +31,16 @@ class User extends Authenticatable
         'contact_number',
         'userrole',   
         'assigned_pli',
-        'AR1_Name', 'AR1_Designation', 'AR1_Contact', 'AR1_Email',
-        'AR2_Name', 'AR2_Designation', 'AR2_Contact', 'AR2_Email',
-        'AR3_Name', 'AR3_Designation', 'AR3_Contact', 'AR3_Email',
+
+        // AR 1
+        'AR1_FN', 'AR1_MN', 'AR1_LN', 'AR1_Designation', 'AR1_Contact', 'AR1_Email',
+        // AR 2
+        'AR2_FN', 'AR2_MN', 'AR2_LN', 'AR2_Designation', 'AR2_Contact', 'AR2_Email',
+        // AR 3
+        'AR3_FN', 'AR3_MN', 'AR3_LN', 'AR3_Designation', 'AR3_Contact', 'AR3_Email',
+        // 'AR1_Name', 'AR1_Designation', 'AR1_Contact', 'AR1_Email',
+        // 'AR2_Name', 'AR2_Designation', 'AR2_Contact', 'AR2_Email',
+        // 'AR3_Name', 'AR3_Designation', 'AR3_Contact', 'AR3_Email',
     ];
 
     /**
@@ -89,8 +97,18 @@ class User extends Authenticatable
         return $this->belongsToMany(Pli::class);
     }
 
+    protected static function booted()
+    {
+        static::created(function ($user) {
+            if ($user->usertype === 'user') {
+                Document::createDefaultDocumentsForUser($user->id);
+            }
+        });
+    }
+
     public function documents()
     {
         return $this->hasMany(Document::class);
     }
+    
 }
