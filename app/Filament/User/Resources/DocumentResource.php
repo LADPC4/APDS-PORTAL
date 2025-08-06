@@ -53,18 +53,31 @@ class DocumentResource extends Resource
                     ->default(fn () => Auth::id())
                     ->dehydrated(),
 
+                // FileUpload::make('file_path')
+                //     ->label('Upload File')
+                //     ->directory('uploads')
+                //     ->disk('public')
+                //     ->visibility('public')
+                //     ->required()
+                //     // ->maxSize(10240) // 10 MB max
+                //     // ->getUploadedFileNameForStorageUsing(fn ($file) => $file->hashName()), 
+                //     ->getUploadedFileNameForStorageUsing(fn ($file) => $file->hashName())
+                //     // ->enableDownload()
+                //     ->enableOpen()
+                //     ->previewable(false),
+
                 FileUpload::make('file_path')
-                    ->label('Upload File')
-                    ->directory('uploads')
+                    ->label('Upload File Sample')
                     ->disk('public')
-                    ->visibility('public')
+                    ->directory('uploads')
+                    ->storeFiles() // ✅ this is required to skip temp upload validation
+                    ->maxSize(204800) // ✅ 200MB in KB
+                    ->rules(['file', 'max:204800']) // ✅ server-side rule
                     ->required()
-                    // ->maxSize(10240) // 10 MB max
-                    // ->getUploadedFileNameForStorageUsing(fn ($file) => $file->hashName()), 
                     ->getUploadedFileNameForStorageUsing(fn ($file) => $file->hashName())
-                    // ->enableDownload()
                     ->enableOpen()
                     ->previewable(false),
+
             ]);
     }
 
