@@ -1,0 +1,105 @@
+<?php
+
+namespace App\Filament\Resources\RegistrantResource\Pages;
+
+use App\Filament\Resources\RegistrantResource;
+use Filament\Actions;
+use Filament\Resources\Pages\ListRecords;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\Action;
+use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Auth;
+
+class Rejected extends ListRecords
+{
+    protected static string $resource = RegistrantResource::class;
+
+    // protected function getHeaderActions(): array
+    // {
+    //     return [
+    //         Actions\CreateAction::make(),
+    //     ];
+    // }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return 'PLIs List';
+    }
+
+    public ?string $activeTab = 'rejected';
+
+    protected function getTableQuery(): Builder
+    {
+        return parent::getTableQuery()
+            ->where('usertype', 'user')
+            ->where('status', 'rejected');
+    }
+
+    public function table(Table $table): Table
+    {
+        return $table
+            ->columns($this->getTableColumns())
+            ->actions($this->getTableActions());
+    }
+
+    protected function getTableColumns(): array
+    {
+        return [
+            Tables\Columns\TextColumn::make('name')
+                ->sortable()
+                ->searchable(),
+
+            Tables\Columns\TextColumn::make('email')
+                ->sortable()
+                ->searchable(),
+
+            Tables\Columns\TextColumn::make('status')
+                ->badge()
+                ->color(fn (string $state) => match ($state) {
+                    'for-evaluation' => 'gray',      // 1st stage - neutral color
+                    'for-review'     => 'warning',   // 2nd stage - yellow/orange
+                    'for-approval'   => 'info',      // 3rd stage - blue
+                    'approved'       => 'success',   // Final approved - green
+                    'rejected'       => 'danger',    // Final rejected - red
+                    default          => 'secondary', // Fallback
+                }),
+
+            Tables\Columns\TextColumn::make('created_at')
+                ->label('Requested At')
+                ->dateTime()
+                ->sortable(),
+        ];
+    }
+
+    protected function getTableActions(): array
+    {
+        $user = Auth::user();
+        $isEvaluator = $user?->userrole === 'Evaluator';
+        $isReviewer = $user?->userrole === 'Reviewer';
+        return [
+            Tables\Actions\ViewAction::make(),
+            // Tables\Actions\EditAction::make(),
+
+            Action::make('reconsider')
+                ->label('Reconsider')
+                ->icon('heroicon-o-arrow-path')
+                ->color('primary')
+                ->requiresConfirmation()
+                ->action(function ($record) {
+                    $record->update(['status' => 'for-evaluation']);
+
+                    Notification::make()
+                        ->success()
+                        ->title('User Reconsidered')
+                        ->send();
+
+                    $this->dispatch('refresh');
+                })
+                // ->visible(! $isEvaluator),
+                ->visible(fn () => !($isEvaluator || $isReviewer)),
+        ];
+    }
+
+}

@@ -1,0 +1,104 @@
+{{-- <x-filament-panels::page>
+    <form wire:submit.prevent="submit" class="space-y-6 max-w-xl">
+        {{ $this->form }}
+
+        <x-filament::button type="submit">
+            Save Changes
+        </x-filament::button>
+    </form>
+</x-filament-panels::page> --}}
+{{-- 
+<x-filament-panels::page>
+    @if (!$isEditing)
+        <div class="max-w-xl space-y-6">
+            <h2 class="text-lg font-semibold">Profile Details</h2>
+
+            <div class="space-y-2">
+                <div class="flex">
+                    <div class="w-40 font-semibold text-gray-700">Institution Name:</div>
+                    <div class="flex-1 text-gray-900">{{ $name }}</div>
+                </div>
+
+                <div class="flex">
+                    <div class="w-40 font-semibold text-gray-700">Official Email Address:</div>
+                    <div class="flex-1 text-gray-900">{{ $email }}</div>
+                </div>
+
+                <div class="flex">
+                    <div class="w-40 font-semibold text-gray-700">Contact Number:</div>
+                    <div class="flex-1 text-gray-900">{{ $contact_number }}</div>
+                </div>
+
+                <div class="flex">
+                    <div class="w-40 font-semibold text-gray-700">Address:</div>
+                    <div class="flex-1 text-gray-900">{{ $address }}</div>
+                </div>
+            </div>
+
+            <x-filament::button wire:click="$set('isEditing', true)">
+                Edit Profile
+            </x-filament::button>
+        </div>
+    @else
+        <form wire:submit.prevent="submit" class="space-y-6 max-w-xl">
+            {{ $this->form }}
+
+            <div class="flex mt-6">
+                <x-filament::button type="submit" class="!mr-4 w-auto">
+                    Save Changes
+                </x-filament::button>
+
+                <x-filament::button type="button" color="gray" wire:click="$set('isEditing', false)" class="w-auto">
+                    Cancel
+                </x-filament::button>
+            </div>
+        </form>
+    @endif
+</x-filament-panels::page> --}}
+
+<x-filament-panels::page>
+    @if (!$isEditing)
+        <div style="max-width: 100vw; margin-bottom: 1.5rem;">
+            <div>
+                <div style="display: flex; margin-bottom: 0.5rem;">
+                    <div style="width: 15vw; font-weight: 600; color: #374151;">Institution Name:</div>
+                    <div style="flex: 1; color: #111827;">{{ $name }}</div>
+                </div>
+
+                <div style="display: flex; margin-bottom: 0.5rem;">
+                    <div style="width: 15vw; font-weight: 600; color: #374151;">Official Email Address:</div>
+                    <div style="flex: 1; color: #111827;">{{ $email }}</div>
+                </div>
+
+                <div style="display: flex; margin-bottom: 0.5rem;">
+                    <div style="width: 15vw; font-weight: 600; color: #374151;">Contact Number:</div>
+                    <div style="flex: 1; color: #111827;">{{ $contact_number }}</div>
+                </div>
+
+                <div style="display: flex; margin-bottom: 0.5rem;">
+                    <div style="width: 15vw; font-weight: 600; color: #374151;">Address:</div>
+                    <div style="flex: 1; color: #111827;">{{ $address }}</div>
+                </div>
+            </div>
+
+            <x-filament::button wire:click="$set('isEditing', true)">
+                Edit Profile
+            </x-filament::button>
+        </div>
+    @else
+        <form wire:submit.prevent="submit" style="max-width: 100vw;">
+            {{ $this->form }}
+
+            <div style="display: flex; margin-top: 1.5rem;">
+                <x-filament::button type="submit" style="margin-right: 1rem; width: auto;">
+                    Save Changes
+                </x-filament::button>
+
+                <x-filament::button type="button" color="gray" wire:click="$set('isEditing', false)" style="width: auto;">
+                    Cancel
+                </x-filament::button>
+            </div>
+        </form>
+    @endif
+</x-filament-panels::page>
+

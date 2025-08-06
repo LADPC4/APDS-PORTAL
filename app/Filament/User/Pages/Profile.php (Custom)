@@ -1,0 +1,238 @@
+<?php
+
+// namespace App\Filament\User\Pages;
+
+// use Filament\Pages\Page;
+// use Filament\Forms;
+// use Filament\Forms\Components\TextInput;
+// use Filament\Forms\Contracts\HasForms;
+// use Filament\Notifications\Notification;
+// use Illuminate\Support\Facades\Auth;
+// use Illuminate\Support\Facades\Validator;
+// use Filament\Forms\Components\Grid;
+
+// class Profile extends Page implements HasForms
+// {
+//     use Forms\Concerns\InteractsWithForms;
+
+//     protected static ?string $navigationIcon = 'heroicon-o-document-text';
+
+//     protected static string $view = 'filament.user.pages.profile';
+
+//     public $name;
+//     public $address;
+//     public $email;
+//     public $contact_number;
+
+    
+
+//     public function mount(): void
+//     {
+//         $user = Auth::user();
+//         $this->name = $user->name;
+//         $this->address = $user->address;
+//         $this->email = $user->email;
+//         $this->contact_number = $user->contact_number;
+
+//         $this->form->fill([
+//             'name' => $this->name,
+//             'address' => $this->address,
+//             'email' => $this->email,
+//             'contact_number' => $this->contact_number,
+//         ]);
+//     }
+
+//     public static function getNavigationSort(): ?int
+//     {
+//         return 1; // Higher than dashboard
+//     }
+    
+//     protected function getFormSchema(): array
+//     {
+//         return [
+//             // 1st row - Institution Name full width
+//             TextInput::make('name')
+//                 ->label('Institution Name')
+//                 ->readOnly(),
+
+//             // 2nd row - email and contact side by side
+//             Grid::make()
+//                 ->schema([
+//                     TextInput::make('email')
+//                         ->label('Official Email')
+//                         ->email()
+//                         ->required(),
+
+//                     TextInput::make('contact_number')
+//                         ->label('Contact Number')
+//                         ->required(),
+//                 ])
+//                 ->columns(2)
+//                 ->columnSpan('full'),
+
+//             // 3rd row - Address full width
+//             TextInput::make('address')
+//                 ->label('Address')
+//                 ->readOnly(),
+//         ];
+//     }
+
+//     public function submit()
+//     {
+//         $data = $this->form->getState();
+
+//         // Validate email uniqueness except current user
+//         $validator = Validator::make($data, [
+//             'email' => 'required|email|unique:users,email,' . Auth::id(),
+//             'contact_number' => 'required|string',
+//         ]);
+
+//         if ($validator->fails()) {
+//             $messages = $validator->errors()->all();
+
+//             Notification::make()
+//                 ->title('There was a problem updating your profile.')
+//                 ->danger()
+//                 ->body(implode(' ', $messages))
+//                 ->send();
+
+//             return;
+//         }
+
+//         // Update user if validation passes
+//         $user = Auth::user();
+//         $user->name = $data['name'];
+//         $user->address = $data['address'];
+//         $user->email = $data['email'];
+//         $user->contact_number = $data['contact_number'];
+//         $user->save();
+
+//         Notification::make()
+//             ->title('Profile updated successfully!')
+//             ->success()
+//             ->send();
+//     }
+// }
+
+namespace App\Filament\User\Pages;
+
+use Filament\Pages\Page;
+use Filament\Forms;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Grid;
+use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
+
+class Profile extends Page implements HasForms
+{
+    use Forms\Concerns\InteractsWithForms;
+
+    protected static ?string $navigationIcon = 'heroicon-o-user';
+    protected static string $view = 'filament.user.pages.profile';
+
+    // User data properties
+    public $name;
+    public $address;
+    public $email;
+    public $contact_number;
+
+    // Toggle between view and edit mode
+    public bool $isEditing = false;
+
+    public function mount(): void
+    {
+        $user = Auth::user();
+
+        $this->name = $user->name;
+        $this->address = $user->address;
+        $this->email = $user->email;
+        $this->contact_number = $user->contact_number;
+    }
+        
+    public static function getNavigationSort(): ?int
+    {
+        return 1; // Higher than dashboard
+    }
+
+    // Fill form fields only when entering edit mode
+    public function updatedIsEditing(bool $value): void
+    {
+        if ($value) {
+            $this->form->fill([
+                'name' => $this->name,
+                'address' => $this->address,
+                'email' => $this->email,
+                'contact_number' => $this->contact_number,
+            ]);
+        }
+    }
+
+    protected function getFormSchema(): array
+    {
+        return [
+            TextInput::make('name')
+                ->label('Institution Name')
+                ->required(),
+                // ->disabled(), // read-only in form if you want, remove ->disabled() to allow edit
+
+            Grid::make()
+                ->schema([
+                    TextInput::make('email')
+                        ->label('Official Email Address')
+                        ->email()
+                        // ->required()
+                        ->disabled(),
+
+                    TextInput::make('contact_number')
+                        ->label('Contact Number')
+                        ->required(),
+                ])
+                ->columns(2)
+                ->columnSpan('full'),
+
+            TextInput::make('address')
+                ->label('Address')
+                ->required(),
+                // ->disabled(), // read-only in form, remove to allow editing
+        ];
+    }
+
+    public function submit(): void
+    {
+        $data = $this->form->getState();
+
+        $validator = Validator::make($data, [
+            // 'email' => 'required|email|unique:users,email,' . Auth::id(),
+            'contact_number' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            Notification::make()
+                ->title('Problem updating profile')
+                ->danger()
+                ->body(implode(' ', $validator->errors()->all()))
+                ->send();
+
+            return;
+        }
+
+        $user = Auth::user();
+        // $user->email = $data['email'];
+        $user->contact_number = $data['contact_number'];
+        $user->save();
+
+        // Update local properties to reflect saved changes
+        // $this->email = $data['email'];
+        $this->contact_number = $data['contact_number'];
+
+        // Exit edit mode
+        $this->isEditing = false;
+
+        Notification::make()
+            ->title('Profile updated successfully!')
+            ->success()
+            ->send();
+    }
+}
