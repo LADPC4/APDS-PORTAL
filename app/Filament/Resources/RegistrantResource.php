@@ -35,78 +35,21 @@ class RegistrantResource extends Resource
     {
         return $form
             ->schema([
-                // TextInput::make('name')->required(),
-                // TextInput::make('email')->email()->required(),
-                // Select::make('status')
-                //     ->options([
-                //         'for-evaluation' => 'For Evaluation',
-                //         'for-review' => 'For Review',
-                //         'for-approval' => 'For Approval',
-                //         'approved' => 'Approved',
-                //         'rejected' => 'Rejected',
-                //     ])
-                //     ->required(),
-
-                
                 Grid::make(1)->schema([
                     Fieldset::make('Institute Details')->schema([
                         TextInput::make('name')
                             ->label('Institute Name')
                             ->required()
-                            
                             ->columnSpan('full'),
 
                         Grid::make(2)->schema([
-                            // Select::make('classification')
-                            //     ->label('Classification')
-                            //     ->options([
-                            //         'Banks' => 'Banks',
-                            //         'Cooperatives' => 'Cooperatives',
-                            //         'Cooperative Banks' => 'Cooperative Banks',
-                            //         'Insurance Companies' => 'Insurance Companies',
-                            //         'Teachers Association' => 'Teachers Association',
-                            //         'Savings and Loans Associations' => 'Savings and Loans Associations',
-                            //     ])
-                            //     ->required()
-                            //     ,
-                            
 
                             Select::make('classification_id')
                                 ->label('Classification')
-                                ->options(function () {
-                                    return Classification::query()
-                                        ->orderBy('name')
-                                        ->pluck('name', 'id')
-                                        ->toArray();
-                                })
+                                ->options(\App\Models\Classification::orderBy('name')->pluck('name', 'id')->toArray())
                                 ->required()
-                                ->searchable()
-                                ->preload(),
-
-                            // Select::make('region')
-                            //     ->label('Region')
-                            //     ->options([
-                            //         'CAR'   => 'Cordillera Administrative Region',
-                            //         'NCR'   => 'National Capital Region',
-                            //         'R01'   => 'Region I: Ilocos Region',
-                            //         'R02'   => 'Region II: Cagayan Valley',
-                            //         'R03'   => 'Region III: Central Luzon',
-                            //         'R04A'  => 'Region IV-A: CALABARZON',
-                            //         'R04B'  => 'Region IV-B: MIMAROPA Region',
-                            //         'R05'   => 'Region V: Bicol Region',
-                            //         'R06'   => 'Region VI: Western Visayas',
-                            //         'R07'   => 'Region VII: Central Visayas',
-                            //         'R08'   => 'Region VIII: Eastern Visayas',
-                            //         'R09'   => 'Region IX: Zamboanga Peninsula',
-                            //         'R10'   => 'Region X: Northern Mindanao',
-                            //         'R11'   => 'Region XI: Davao Region',
-                            //         'R12'   => 'Region XII: SOCCSKSARGEN',
-                            //         'R13'   => 'Region XIII: Caraga',
-                            //     ])
-                            //     ->required()
-                            //     ,
-
-                            
+                                ->searchable(),
+                                
                             Select::make('region')
                                 ->label('Regions Covered')
                                 ->multiple()
@@ -124,7 +67,7 @@ class RegistrantResource extends Resource
                         Grid::make(2)->schema([
                             TextInput::make('email')
                                 ->label('Official Email Address')
-                                // ->disabled(true)
+                                ->disabled(true)
                                 ->readonly(),
 
                             TextInput::make('contact_number')
@@ -136,37 +79,45 @@ class RegistrantResource extends Resource
                         TextInput::make('address')
                             ->label('Address')
                             ->required()
-                            
                             ->columnSpan('full'),
                     
                     ])
                 ]),
 
                 Grid::make(3)->schema([
-                    Fieldset::make('Authorized Representative 1')->schema([
-                        TextInput::make('AR1_Name')->label('Name')->columnSpan('full'),
-                        TextInput::make('AR1_Designation')->label('Designation or Position')->columnSpan('full'),
-                        TextInput::make('AR1_Contact')->label('Contact Number')->columnSpan('full'),
-                        TextInput::make('AR1_Email')->label('Email')->email()->columnSpan('full'),
-                    ])
-                    ->columnSpan(1),
+                        Fieldset::make('Authorized Representative 1')->schema([
+                            TextInput::make('AR1_FN')->label('First Name')->columnSpan('full'),
+                            TextInput::make('AR1_MN')->label('Middle Name')->columnSpan('full'),
+                            TextInput::make('AR1_LN')->label('Last Name')->columnSpan('full'),
+                            TextInput::make('AR1_Designation')->label('Designation or Position')->columnSpan('full'),
+                            TextInput::make('AR1_Contact')->label('Contact Number')->columnSpan('full'),
+                            TextInput::make('AR1_Email')->label('Email')->email()->columnSpan('full'),
+                        ])
+                        ->columnSpan(1),
 
-                    Fieldset::make('Authorized Representative 2')->schema([
-                        TextInput::make('AR2_Name')->label('Name')->columnSpan('full'),
-                        TextInput::make('AR2_Designation')->label('Designation or Position')->columnSpan('full'),
-                        TextInput::make('AR2_Contact')->label('Contact Number')->columnSpan('full'),
-                        TextInput::make('AR2_Email')->label('Email')->email()->columnSpan('full'),
-                    ])
-                    ->columnSpan(1),
+                        Fieldset::make('Authorized Representative 2')->schema([
+                            // TextInput::make('AR2_Name')->label('Name')->columnSpan('full'),
+                            TextInput::make('AR2_FN')->label('First Name')->columnSpan('full'),
+                            TextInput::make('AR2_MN')->label('Middle Name')->columnSpan('full'),
+                            TextInput::make('AR2_LN')->label('Last Name')->columnSpan('full'),
+                            TextInput::make('AR2_Designation')->label('Designation or Position')->columnSpan('full'),
+                            TextInput::make('AR2_Contact')->label('Contact Number')->columnSpan('full'),
+                            TextInput::make('AR2_Email')->label('Email')->email()->columnSpan('full'),
+                        ])
+                        ->columnSpan(1),
 
-                    Fieldset::make('Authorized Representative 3')->schema([
-                        TextInput::make('AR3_Name')->label('Name')->columnSpan('full'),
-                        TextInput::make('AR3_Designation')->label('Designation or Position')->columnSpan('full'),
-                        TextInput::make('AR3_Contact')->label('Contact Number')->columnSpan('full'),
-                        TextInput::make('AR3_Email')->label('Email')->email()->columnSpan('full'),
-                    ])
-                    ->columnSpan(1),
-                ]),
+                        Fieldset::make('Authorized Representative 3')->schema([
+                            // TextInput::make('AR3_Name')->label('Name')->columnSpan('full'),
+                            TextInput::make('AR3_FN')->label('First Name')->columnSpan('full'),
+                            TextInput::make('AR3_MN')->label('Middle Name')->columnSpan('full'),
+                            TextInput::make('AR3_LN')->label('Last Name')->columnSpan('full'),
+                            TextInput::make('AR3_Designation')->label('Designation or Position')->columnSpan('full'),
+                            TextInput::make('AR3_Contact')->label('Contact Number')->columnSpan('full'),
+                            TextInput::make('AR3_Email')->label('Email')->email()->columnSpan('full'),
+                        ])
+                        ->columnSpan(1),
+                    ]),
+
 
             ]);
     }
@@ -214,6 +165,7 @@ class RegistrantResource extends Resource
             'index' => Pages\ListRegistrants::route('/'),
             'create' => Pages\CreateRegistrant::route('/create'),
             'edit' => Pages\EditRegistrant::route('/{record}/edit'),
+            'view' => Pages\ViewRegistrant::route('/view/{record}'),
             'for-evaluation' => Pages\ForEvaluation::route('/for-evaluation'),
             'for-review' => Pages\ForReview::route('/for-review'),
             'for-approval' => Pages\ForApproval::route('/for-approval'),

@@ -80,7 +80,14 @@ class ForEvaluation extends ListRecords
         $isEvaluator = $user?->userrole === 'Evaluator';
         return [
             Tables\Actions\ViewAction::make(),
-            Tables\Actions\EditAction::make()->visible(! $isEvaluator),
+            // Tables\Actions\ViewAction::make()
+            //     ->label('Inspect')
+            //     ->icon('heroicon-o-eye')
+            //     ->color('info')
+            //     ->url(fn ($record) => route('filament.admin.resources.registrants.view', ['record' => $record])),
+            Tables\Actions\EditAction::make()
+            // ->visible(! $isEvaluator)
+            ,
             
             Action::make('approve')
                 ->label('Escalate to Reviewer')
