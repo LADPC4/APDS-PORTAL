@@ -11,10 +11,14 @@ use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Pli;
+
 
 class Approved extends ListRecords
 {
     protected static string $resource = RegistrantResource::class;
+
+    public ?string $activeTab = 'approved';
 
     // protected function getHeaderActions(): array
     // {
@@ -28,14 +32,12 @@ class Approved extends ListRecords
         return 'PLIs List';
     }
 
-    public ?string $activeTab = 'approved';
-
-    protected function getTableQuery(): Builder
-    {
-        return parent::getTableQuery()
-            ->where('usertype', 'user')
-            ->where('status', 'approved');
-    }
+    // protected function getTableQuery(): Builder
+    // {
+    //     return parent::getTableQuery()
+    //         ->where('usertype', 'user')
+    //         ->where('status', 'approved');
+    // }
 
     public function table(Table $table): Table
     {
@@ -102,6 +104,35 @@ class Approved extends ListRecords
                 // ->visible(! $isEvaluator),
                 ->visible(fn () => !($isEvaluator || $isReviewer)),
         ];
+    }
+
+    protected function getTableQuery(): Builder
+    {
+        $query = parent::getTableQuery()
+            ->where('usertype', 'user')
+            ->where('status', $this->activeTab);
+
+        $user = Auth::user();
+
+        if ($user && $user->userrole === 'Evaluator') {
+            // Get PLIs assigned to the evaluator
+            $pliIds = $user->plis()->pluck('plis.id');
+
+            // Get all user IDs associated with those PLIs
+            $userIds = Pli::whereIn('id', $pliIds)
+                ->with('users')
+                ->get()
+                ->pluck('users')
+                ->flatten()
+                ->where('usertype', 'user') // Only include registrants
+                ->pluck('id')
+                ->unique();
+
+            // Limit query to users assigned to those PLIs
+            $query->whereIn('id', $userIds);
+        }
+
+        return $query;
     }
 
 }

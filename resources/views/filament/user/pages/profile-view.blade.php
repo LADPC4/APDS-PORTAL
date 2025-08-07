@@ -67,7 +67,7 @@
                     <dl class="text-gray-700 space-y-3 text-sm">
                         <div>
                             <dt class="font-medium">Full Name</dt>
-                            <dd>{{ $this->{"AR{$i}_MN"} }} {{ $this->{"AR{$i}_FN"} }} {{ $this->{"AR{$i}_LN"} }}</dd>
+                            <dd>{{ $this->{"AR{$i}_FN"} }} {{ $this->{"AR{$i}_MN"} }} {{ $this->{"AR{$i}_LN"} }}</dd>
                         </div>
                         <div>
                             <dt class="font-medium">Designation or Position</dt>
