@@ -20,4 +20,9 @@ class Classification extends Model
     {
         return $this->hasMany(Pli::class);
     }
+    
+    public function requiredDocuments()
+    {
+        return $this->hasMany(ClassificationDocument::class);
+    }
 }

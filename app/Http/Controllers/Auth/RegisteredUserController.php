@@ -18,6 +18,14 @@ use Illuminate\View\View;
 class RegisteredUserController extends Controller
 {
     /**
+     * Display the registration choice page.
+     */
+    public function showChoice(): View
+    {
+        return view('auth.register-choice');
+    }
+    
+    /**
      * Display the registration view.
      */
     public function create(): View
@@ -60,7 +68,7 @@ class RegisteredUserController extends Controller
             'region' => $request->region,
             'password' => Hash::make($request->password),
             'usertype' => 'user',
-            'status' => 'for-evaluation',
+            'status' => 'pending',
         ]);
 
         // Create a PLI for the user

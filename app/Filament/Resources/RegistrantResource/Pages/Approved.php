@@ -12,6 +12,8 @@ use Filament\Tables\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Pli;
+use Filament\Tables\Filters\SelectFilter;
+use App\Models\Classification;
 
 
 class Approved extends ListRecords
@@ -43,6 +45,20 @@ class Approved extends ListRecords
     {
         return $table
             ->columns($this->getTableColumns())
+            ->filters([
+                SelectFilter::make('classification')
+                    ->label('Classification')
+                    ->options(function () {
+                        return Classification::orderBy('name')->pluck('name', 'id')->toArray();
+                    })
+                    ->query(function (Builder $query, array $data) {
+                        if (!empty($data['value'])) {
+                            $query->whereHas('classification', function (Builder $query) use ($data) {
+                                $query->where('id', $data['value']);
+                            });
+                        }
+                    }),
+            ])
             ->actions($this->getTableActions());
     }
 
@@ -56,6 +72,12 @@ class Approved extends ListRecords
             Tables\Columns\TextColumn::make('email')
                 ->sortable()
                 ->searchable(),
+            
+            Tables\Columns\TextColumn::make('classification.name')
+                ->label('Classification')
+                ->searchable()
+                ->sortable()
+                ->toggleable(),
 
             Tables\Columns\TextColumn::make('status')
                 ->badge()

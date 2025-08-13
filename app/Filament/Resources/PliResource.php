@@ -118,18 +118,18 @@ class PliResource extends Resource
                                 ->preload(),
 
                                 
-                            Select::make('region')
-                                ->label('Regions Covered')
-                                ->multiple()
-                                ->options(
-                                    Region::query()
-                                        ->orderBy('code')
-                                        ->pluck('code', 'code') // ['CAR' => 'CAR', 'R01' => 'R01', etc.]
-                                        ->toArray()
-                                )
-                                ->preload()
-                                ->searchable()
-                                ->required(),
+                            // Select::make('region')
+                            //     ->label('Regions Covered')
+                            //     ->multiple()
+                            //     ->options(
+                            //         Region::query()
+                            //             ->orderBy('code')
+                            //             ->pluck('code', 'code') // ['CAR' => 'CAR', 'R01' => 'R01', etc.]
+                            //             ->toArray()
+                            //     )
+                            //     ->preload()
+                            //     ->searchable()
+                            //     ->required(),
 
 
                             Select::make('status')
@@ -142,60 +142,62 @@ class PliResource extends Resource
                         ]),
                 ]),
 
-            // Section::make('Regional Configuration')
-            //     ->schema([
-            //         Grid::make(2)->schema([
-            //             // Left column: Toggles
-            //             Group::make(
-            //                 collect($regions)->map(fn ($region) =>
-            //                     Toggle::make($region)
-            //                         ->label("{$region} Region")
-            //                         ->reactive()
-            //                 )->toArray()
-            //             )->columnSpan(1),
+            
+            Section::make('Regional Configuration')
+                ->schema([
+                    Select::make('region')
+                        ->label('Regions Covered')
+                        ->multiple()
+                        ->options(
+                            Region::query()
+                                ->orderBy('code')
+                                ->pluck('code', 'code') // ['CAR' => 'CAR', 'R01' => 'R01', etc.]
+                                ->toArray()
+                        )
+                        ->preload()
+                        ->searchable()
+                        ->required(),
+                ]),
 
-            //             // Right column: Repeaters
-            //             Group::make(
-            //                 collect($regions)->map(fn ($region) =>
-            //                     Repeater::make("{$region}_Prov")
-            //                         ->label("{$region} Provinces")
-            //                         ->addActionLabel("Add another Province in {$region}")
-            //                         ->schema([
-            //                             Grid::make()
-            //                                 ->schema([
-            //                                     TextInput::make('value')
-            //                                         ->label('Province Name')
-            //                                         ->inlineLabel()
-            //                                         ->columnSpanFull(),
-            //                                 ])
-            //                         ])
-            //                         ->columns(1)
-            //                         ->grid(1)
-            //                         ->collapsible()
-            //                         ->collapsed()
-            //                         // ->itemLabel(fn () => null)
-            //                         ->itemLabel(fn (array $state): ?string => $state['value'] ?? null)
-            //                         ->visible(fn ($get) => $get($region) === true)
-            //                         ->columnSpanFull() // helps stretch inside group
-            //                 )->toArray()
-            //             )->columnSpan(1),
-            //         ]),
-            //     ]),
-            // Section::make('Regional Configuration')
-            //     ->schema([
-            //         Select::make('region')
-            //             ->label('Regions Covered')
-            //             ->multiple()
-            //             ->options(
-            //                 Region::query()
-            //                     ->orderBy('code')
-            //                     ->pluck('code', 'code') // ['CAR' => 'CAR', 'R01' => 'R01', etc.]
-            //                     ->toArray()
-            //             )
-            //             ->preload()
-            //             ->searchable()
-            //             ->required(),
-            //     ]),
+            Section::make('Regional Configuration')
+                ->schema([
+                    Grid::make(2)->schema([
+                        // Left column: Toggles
+                        Group::make(
+                            collect($regions)->map(fn ($region) =>
+                                Toggle::make($region)
+                                    ->label("{$region} Region")
+                                    ->reactive()
+                            )->toArray()
+                        )->columnSpan(1),
+
+                        // Right column: Repeaters
+                        Group::make(
+                            collect($regions)->map(fn ($region) =>
+                                Repeater::make("{$region}_Prov")
+                                    ->label("{$region} Provinces")
+                                    ->addActionLabel("Add another Province in {$region}")
+                                    ->schema([
+                                        Grid::make()
+                                            ->schema([
+                                                TextInput::make('value')
+                                                    ->label('Province Name')
+                                                    ->inlineLabel()
+                                                    ->columnSpanFull(),
+                                            ])
+                                    ])
+                                    ->columns(1)
+                                    ->grid(1)
+                                    ->collapsible()
+                                    ->collapsed()
+                                    // ->itemLabel(fn () => null)
+                                    ->itemLabel(fn (array $state): ?string => $state['value'] ?? null)
+                                    ->visible(fn ($get) => $get($region) === true)
+                                    ->columnSpanFull() // helps stretch inside group
+                            )->toArray()
+                        )->columnSpan(1),
+                    ]),
+                ]),
 
 
             ]);
@@ -247,6 +249,13 @@ class PliResource extends Resource
                 ->toggleable(),
             TextColumn::make('in_charge')
                 ->label('In-Charge')
+                ->formatStateUsing(function ($state, $record) {
+                    return $record->users()
+                        ->where('usertype', 'admin')
+                        ->where('userrole', 'Evaluator')
+                        ->pluck('name')
+                        ->implode(', ');
+                })
                 ->wrap()
                 ->toggleable(),
             TextColumn::make('region')

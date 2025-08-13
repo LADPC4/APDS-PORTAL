@@ -45,26 +45,26 @@ class DocumentResource extends Resource
     {
         return $form
             ->schema([
-                // TextInput::make('name')
-                //     ->label('Document Name')
-                //     ->required()
-                //     ->maxLength(255),
+                // // TextInput::make('name')
+                // //     ->label('Document Name')
+                // //     ->required()
+                // //     ->maxLength(255),
 
-                // Hidden::make('user_id')
-                //     ->default(fn () => Auth::id())
-                //     ->dehydrated(),
+                // // Hidden::make('user_id')
+                // //     ->default(fn () => Auth::id())
+                // //     ->dehydrated(),
 
-                // FileUpload::make('file_path')
-                //     ->label('Upload File Sample')
-                //     ->disk('public')
-                //     ->directory('uploads')
-                //     ->storeFiles() // ✅ this is required to skip temp upload validation
-                //     ->maxSize(204800) // ✅ 200MB in KB
-                //     ->rules(['file', 'max:204800']) // ✅ server-side rule
-                //     ->required()
-                //     ->getUploadedFileNameForStorageUsing(fn ($file) => $file->hashName())
-                //     ->enableOpen()
-                //     ->previewable(false),
+                // // FileUpload::make('file_path')
+                // //     ->label('Upload File Sample')
+                // //     ->disk('public')
+                // //     ->directory('uploads')
+                // //     ->storeFiles() // ✅ this is required to skip temp upload validation
+                // //     ->maxSize(204800) // ✅ 200MB in KB
+                // //     ->rules(['file', 'max:204800']) // ✅ server-side rule
+                // //     ->required()
+                // //     ->getUploadedFileNameForStorageUsing(fn ($file) => $file->hashName())
+                // //     ->enableOpen()
+                // //     ->previewable(false),
                 
                 TextInput::make('name')
                     ->label('Document Name')
@@ -82,18 +82,27 @@ class DocumentResource extends Resource
                     ->storeFiles()
                     ->maxSize(204800) // 200 MB
                     ->rules(['file', 'max:204800'])
-                    ->required(fn ($record) => !$record->file_path) // only require if no file yet
+                    // ->required(fn ($record) => !$record->file_path) // only require if no file yet
+                    ->required()
                     ->getUploadedFileNameForStorageUsing(fn ($file) => $file->hashName())
-                    ->enableOpen()
-                    ->previewable(false),
+                    // ->enableOpen()
+                    ->downloadable()
+                    ->previewable(false)
+                    ->disabled(function ($record) {
+                        return Auth::user()->usertype === 'user'
+                            && $record
+                            // && $record->status === 'under-review';
+                            
+                            && in_array($record->status, [
+                                'under-review',
+                                'Evaluated',
+                                'Reviewed',
+                                'Approved'
+                            ]);
+                    }),
 
-                Forms\Components\Select::make('status')
+                TextInput::make('status')
                     ->label('Status')
-                    ->options([
-                        'Pending' => 'Pending',
-                        'Approved' => 'Approved',
-                        'Rejected' => 'Rejected',
-                    ])
                     ->default('Pending')
                     ->required()
                     ->disabled(fn () => Auth::user()->usertype === 'user'),
@@ -103,6 +112,13 @@ class DocumentResource extends Resource
                     ->rows(3)
                     ->nullable()
                     ->disabled(fn () => Auth::user()->usertype === 'user'),
+                    // ->visible(fn () => Auth::user()->usertype !== 'user'),
+                
+                // Forms\Components\FileUpload::make('file_path')
+                //     ->label(fn ($record) => $record->name)
+                //     ->directory('documents')
+                //     ->required(),
+                // Forms\Components\Textarea::make('remark')->disabled(),
             ]);
     }
 
@@ -151,7 +167,21 @@ class DocumentResource extends Resource
                     ])
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                // Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->label(fn ($record) => $record->status === 'for-revision' ? 'Edit' : 'Upload')
+                    ->visible(function ($record) {
+                        return !(Auth::user()->usertype === 'user'
+                        
+                            // && $record->status === 'under-review');
+                            && in_array($record->status, [
+                                'under-review',
+                                'Evaluated',
+                                'Reviewed',
+                                'Approved'
+                            ])
+                        );
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

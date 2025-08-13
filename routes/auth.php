@@ -12,10 +12,46 @@ use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
-    Route::get('register', [RegisteredUserController::class, 'create'])
+    // Route::get('register', [RegisteredUserController::class, 'create'])
+    //     ->name('register');
+    
+    //new register route
+    Route::get('register', [RegisteredUserController::class, 'showChoice'])
         ->name('register');
 
+    //regular registration 
+    Route::get('register/new', [RegisteredUserController::class, 'create'])
+        ->name('register.new');
+        
+    //old store
     Route::post('register', [RegisteredUserController::class, 'store']);
+    
+    Route::post('register/new', [RegisteredUserController::class, 'store'])
+        ->name('register.new.store');
+
+    // Existing PLI registration path
+    Route::get('register/existing', [\App\Http\Controllers\Auth\ExistingPliRegistrationController::class, 'showLoanCodeForm'])
+        ->name('register.existing');
+
+    Route::post('register/existing/validate', [\App\Http\Controllers\Auth\ExistingPliRegistrationController::class, 'validateLoanCode'])
+        ->name('register.existing.validate');
+
+    Route::get('register/existing/confirm', [\App\Http\Controllers\Auth\ExistingPliRegistrationController::class, 'showConfirmation'])
+        ->name('register.existing.confirm');
+
+    Route::post('register/existing/confirm', [\App\Http\Controllers\Auth\ExistingPliRegistrationController::class, 'processConfirmation'])
+        ->name('register.existing.confirm.process');
+
+    Route::get('register/existing/complete', [\App\Http\Controllers\Auth\ExistingPliRegistrationController::class, 'showFinalForm'])
+        ->name('register.existing.complete');
+
+    Route::post('register/existing/complete', [\App\Http\Controllers\Auth\ExistingPliRegistrationController::class, 'storeFinalRegistration'])
+        ->name('register.existing.store');
+
+    Route::get('register/canceled', [\App\Http\Controllers\Auth\ExistingPliRegistrationController::class, 'showCanceled'])
+        ->name('register.canceled');
+
+    // unchanged
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');

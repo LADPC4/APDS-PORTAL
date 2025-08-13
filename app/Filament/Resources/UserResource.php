@@ -19,11 +19,17 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Support\Facades\Auth;
 
+
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
     protected static ?string $navigationIcon = 'heroicon-s-users';
+
+    public static function getNavigationSort(): ?int
+    {
+        return 13; 
+    }
 
     public static function getNavigationLabel(): string
     {
@@ -44,7 +50,7 @@ class UserResource extends Resource
     {
         return in_array(Auth::user()?->userrole, ['SuperAdmin', 'Approver', 'Reviewer']);
     }
-
+    
     public static function form(Form $form): Form
     {
         return $form

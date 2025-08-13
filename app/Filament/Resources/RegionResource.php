@@ -12,6 +12,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 
 class RegionResource extends Resource
 {
@@ -19,9 +20,23 @@ class RegionResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    public static function getNavigationSort(): ?int
+    {
+        return 12; 
+    }
+
     public static function getNavigationGroup(): ?string
     {
         return 'Form Settings';
+    }
+    
+    public static function shouldRegisterNavigation(): bool
+    {
+        // Safely get the user (may return null early in lifecycle or CLI)
+        $user = Auth::user();
+
+        // Show only if not a Evaluator (or unauthenticated)
+        return $user?->userrole !== 'Evaluator';
     }
 
     public static function form(Form $form): Form
@@ -30,7 +45,8 @@ class RegionResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('code')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->disabled(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\EditRecord),
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),

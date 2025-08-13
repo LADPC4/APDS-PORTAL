@@ -37,6 +37,7 @@ class ProfileView extends Page implements HasForms
     public $address;
     public $classification_id;
     public $region;
+    public $status;
 
     public $AR1_FN;
     public $AR1_MN;
@@ -71,6 +72,7 @@ class ProfileView extends Page implements HasForms
         $this->email = $this->user->email;
         $this->contact_number = $this->user->contact_number;
         $this->address = $this->user->address;
+        $this->status = $this->user->status;
         $this->classification_id = $this->user->classification_id;
         $this->region = $this->user->region;
 

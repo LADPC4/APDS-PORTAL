@@ -1,0 +1,7 @@
+/**
+     * Display the registration choice page.
+     */
+    public function showChoice(): View
+    {
+        return view('auth.register-choice');
+    }

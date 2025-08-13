@@ -110,7 +110,6 @@ class User extends Authenticatable
     {
         return $this->hasMany(Document::class);
     }
-
     // public function assignedUsers()
     // {
     //     return $this->belongsToMany(User::class, 'pli_user', 'user_id', 'pli_id')  // adjust if incorrect

@@ -71,7 +71,7 @@
 
             <!-- Address -->
             <div class="mt-4">
-                <x-input-label for="address" :value="__('Address')" />
+                <x-input-label for="address" :value="__('Main Office Address')" />
                 <textarea id="address" name="address" rows="3"
                     class="block mt-1 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:ring-indigo-500 dark:focus:ring-indigo-600">{{ old('address') }}</textarea>
                 <x-input-error :messages="$errors->get('address')" class="mt-2" />

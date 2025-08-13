@@ -12,6 +12,8 @@ use Filament\Tables\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Pli;
+use Filament\Tables\Filters\SelectFilter;
+use App\Models\Classification;
 
 class ForApproval extends ListRecords
 {
@@ -31,6 +33,15 @@ class ForApproval extends ListRecords
         return 'PLIs List';
     }
 
+    public static function getNavigationBadge(): ?string
+    {
+        // return RegistrantResource::getModel()::where('status', 'for-approval')->count();
+        
+        $count = RegistrantResource::getModel()::where('status', 'for-approval')->count();
+
+        return $count > 0 ? (string) $count : null;
+    }
+
     // protected function getTableQuery(): Builder
     // {
     //     return parent::getTableQuery()
@@ -42,6 +53,20 @@ class ForApproval extends ListRecords
     {
         return $table
             ->columns($this->getTableColumns())
+            ->filters([
+                SelectFilter::make('classification')
+                    ->label('Classification')
+                    ->options(function () {
+                        return Classification::orderBy('name')->pluck('name', 'id')->toArray();
+                    })
+                    ->query(function (Builder $query, array $data) {
+                        if (!empty($data['value'])) {
+                            $query->whereHas('classification', function (Builder $query) use ($data) {
+                                $query->where('id', $data['value']);
+                            });
+                        }
+                    }),
+            ])
             ->actions($this->getTableActions());
     }
 
@@ -55,6 +80,12 @@ class ForApproval extends ListRecords
             Tables\Columns\TextColumn::make('email')
                 ->sortable()
                 ->searchable(),
+            
+            Tables\Columns\TextColumn::make('classification.name')
+                ->label('Classification')
+                ->searchable()
+                ->sortable()
+                ->toggleable(),
 
             Tables\Columns\TextColumn::make('status')
                 ->badge()
@@ -89,7 +120,7 @@ class ForApproval extends ListRecords
 
                     Notification::make()
                         ->success()
-                        ->title('User Escalated')
+                        ->title('PLI is approved!')
                         ->send();
 
                     $this->dispatch('refresh');

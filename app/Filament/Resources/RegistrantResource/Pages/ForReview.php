@@ -12,6 +12,8 @@ use Filament\Tables\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Pli;
+use Filament\Tables\Filters\SelectFilter;
+use App\Models\Classification;
 
 class ForReview extends ListRecords
 {
@@ -31,6 +33,16 @@ class ForReview extends ListRecords
         return 'PLIs List';
     }
 
+    public static function getNavigationBadge(): ?string
+    {
+        // return RegistrantResource::getModel()::where('status', 'for-review')->count();
+        
+        
+        $count = RegistrantResource::getModel()::where('status', 'for-review')->count();
+
+        return $count > 0 ? (string) $count : null;
+    }
+
     // protected function getTableQuery(): Builder
     // {
     //     return parent::getTableQuery()
@@ -42,6 +54,20 @@ class ForReview extends ListRecords
     {
         return $table
             ->columns($this->getTableColumns())
+            ->filters([
+                SelectFilter::make('classification')
+                    ->label('Classification')
+                    ->options(function () {
+                        return Classification::orderBy('name')->pluck('name', 'id')->toArray();
+                    })
+                    ->query(function (Builder $query, array $data) {
+                        if (!empty($data['value'])) {
+                            $query->whereHas('classification', function (Builder $query) use ($data) {
+                                $query->where('id', $data['value']);
+                            });
+                        }
+                    }),
+            ])
             ->actions($this->getTableActions());
     }
 
@@ -55,6 +81,12 @@ class ForReview extends ListRecords
             Tables\Columns\TextColumn::make('email')
                 ->sortable()
                 ->searchable(),
+            
+            Tables\Columns\TextColumn::make('classification.name')
+                ->label('Classification')
+                ->searchable()
+                ->sortable()
+                ->toggleable(),
 
             Tables\Columns\TextColumn::make('status')
                 ->badge()
@@ -82,24 +114,33 @@ class ForReview extends ListRecords
         return [
 
             Tables\Actions\ViewAction::make(),
-            Tables\Actions\EditAction::make()
-                ->visible(! $isEvaluator),
-            Action::make('warning')
-                ->label('Escalate to Approver')
+            // Tables\Actions\EditAction::make()
+            //     ->visible(! $isEvaluator),
+            Action::make('approve')
+                ->label('Mark as Reviewed')
                 ->icon('heroicon-o-check-circle')
                 ->action(function ($record) {
                     $record->update(['status' => 'for-approval']);
 
                     Notification::make()
                         ->success()
-                        ->title('PLI escalated to approver')
+                        ->title('PLI is forwarded to approver')
                         ->send();
 
                     $this->dispatch('refresh');
                 })
                 ->requiresConfirmation()
-                ->color('success')
-                ->visible(! $isEvaluator),
+                ->visible(! $isEvaluator)
+                ->disabled(function ($record) {
+                    // Check if the user (record) has any documents with eval_feedback = 0
+                    // Assuming $record->documents relationship exists
+                    return $record->documents()->where('rev_feedback', false)->exists();
+                })
+                ->color(function ($record) {
+                    return $record->documents()->where('rev_feedback', false)->exists()
+                        ? 'secondary' // neutral color when disabled
+                        : 'success';   // green when enabled
+                }),
 
             Action::make('reject')
                 ->label('Reject')

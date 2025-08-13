@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Filament\Tables;
 use Illuminate\Database\Eloquent\Builder;
 use App\Models\Pli;
+use Filament\Tables\Filters\SelectFilter;
+use App\Models\Classification;
 
 class ListRegistrants extends ListRecords
 {

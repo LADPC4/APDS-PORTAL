@@ -63,7 +63,7 @@ trait HasProfileForm
                     ]),
 
                     TextInput::make('address')
-                        ->label('Address')
+                        ->label('Main Office Address')
                         ->required()
                         ->disabled($isDisabled)
                         ->columnSpan('full'),

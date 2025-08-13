@@ -59,33 +59,67 @@
 
         {{-- Fieldset container --}}
         <fieldset class="border border-gray-300 rounded-md pt-2 px-4 pb-4">
-            <legend class="font-semibold px-2">
-                Accreditation Status: 
+            <legend class="font-semibold text-gray-700">
+                Accreditation Status:
                 <span>
-                    @if (in_array($user->status, ['for-evaluation', 'for-review', 'for-approval']))
-                        <span style="color: #6b7280;">Under Review</span>
-                    @elseif ($user->status === 'approved')
-                        <span style="color: #16a34a;">Approved</span>
-                    @elseif ($user->status === 'rejected')
-                        <span style="color: #dc2626;">Rejected</span>
-                    @else
-                        <span>Unknown</span>
-                    @endif
+                    @switch($user->status)
+                        @case('for-evaluation')
+                        @case('for-review')
+                        @case('for-approval')
+                        @case('under-review')
+                            <span class="text-gray-500">Under Review</span>
+                            @break
+
+                        @case('pending')
+                            <span class="text-orange-500">Pending for Completion</span>
+                            @break
+
+                        @case('for-revision')
+                            <span class="text-yellow-500">For Revision</span>
+                            @break
+
+                        @case('approved')
+                            <span class="text-green-600">Approved</span>
+                            @break
+
+                        @case('rejected')
+                            <span class="text-red-600">Rejected</span>
+                            @break
+
+                        @default
+                            <span class="text-gray-400">Unknown</span>
+                    @endswitch
                 </span>
             </legend>
 
-            {{-- Notification message inside fieldset --}}
-            <div>
-                @if (in_array($user->status, ['for-evaluation', 'for-review', 'for-approval']))
-                    <p>An Administrator is currently validating your submitted documents.</p>
-                    <p>This process usually takes 2-3 business days.</p>
-                @elseif ($user->status === 'approved')
-                    <p>Your accreditation has been approved. Congratulations!</p>
-                @elseif ($user->status === 'rejected')
-                    <p>Your accreditation was rejected. Please check your documents and resubmit.</p>
-                @else
-                    <p>Status is unknown. Please contact support.</p>
-                @endif
+            <div class="mt-2 text-sm text-gray-600">
+                @switch($user->status)
+                    @case('for-evaluation')
+                    @case('for-review')
+                    @case('for-approval')
+                        <p>An Administrator is validating your submitted documents.</p>
+                        <p>This process usually takes 2–3 business days.</p>
+                        @break
+
+                    @case('pending')
+                        <p>Please complete your required documents.</p>
+                        @break
+
+                    @case('for-revision')
+                        <p>Your submission requires revision. Please check the notes and update your documents.</p>
+                        @break
+
+                    @case('approved')
+                        <p>Your accreditation has been approved. Congratulations!</p>
+                        @break
+
+                    @case('rejected')
+                        <p>Your accreditation was rejected. Please review the feedback and resubmit.</p>
+                        @break
+
+                    @default
+                        <p>Status is unknown. Please contact support.</p>
+                @endswitch
             </div>
         </fieldset>
 

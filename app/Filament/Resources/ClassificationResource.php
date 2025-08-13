@@ -12,16 +12,30 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 
 class ClassificationResource extends Resource
 {
     protected static ?string $model = Classification::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    public static function getNavigationSort(): ?int
+    {
+        return 10; 
+    }
 
     public static function getNavigationGroup(): ?string
     {
         return 'Form Settings';
+    }
+    
+    public static function shouldRegisterNavigation(): bool
+    {
+        // Safely get the user (may return null early in lifecycle or CLI)
+        $user = Auth::user();
+
+        // Show only if not a Evaluator (or unauthenticated)
+        return $user?->userrole !== 'Evaluator';
     }
 
     public static function form(Form $form): Form
