@@ -34,9 +34,17 @@ class ViewRegistrant extends ViewRecord
             return [];
         }
 
-        if ($role === 'Reviewer' && !in_array($status, ['for-evaluation', 'for-review'])) {
+        if ($role === 'Reviewer' && $status !== 'for-review') {
             return [];
         }
+
+        if ($role === 'Approver' && $status !== 'for-approval') {
+            return [];
+        }
+
+        // if ($role === 'Reviewer' && !in_array($status, ['for-evaluation', 'for-review'])) {
+        //     return [];
+        // }
 
         return [
             \Filament\Actions\EditAction::make()

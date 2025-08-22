@@ -18,6 +18,11 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\Hidden;
 use Illuminate\Support\Facades\Auth;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Actions\Action;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Collection;
+
+
 
 class DocumentResource extends Resource
 {
@@ -169,7 +174,8 @@ class DocumentResource extends Resource
             ->actions([
                 // Tables\Actions\EditAction::make(),
                 Tables\Actions\EditAction::make()
-                    ->label(fn ($record) => $record->status === 'for-revision' ? 'Edit' : 'Upload')
+                    // ->label(fn ($record) => $record->status === 'for-revision' ? 'Edit' : 'Upload')
+                    ->label(fn ($record) => in_array($record->status, ['for-revision', 'Resubmitted']) ? 'Edit' : 'Upload')
                     ->visible(function ($record) {
                         return !(Auth::user()->usertype === 'user'
                         
@@ -184,11 +190,49 @@ class DocumentResource extends Resource
                     }),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                // Tables\Actions\BulkActionGroup::make([
+                //     Tables\Actions\DeleteBulkAction::make(),
+                // ]),
+                Tables\Actions\BulkAction::make('editSelected')
+                    ->label('Bulk Upload')
+                    ->icon('heroicon-o-arrow-up-tray')
+                    ->action(function (Collection $records) {
+                        
+                        // Filter only editable documents
+                        $editable = $records->filter(function ($record) {
+                            return !in_array($record->status, [
+                                'under-review',
+                                'Evaluated',
+                                'Reviewed',
+                                'Approved',
+                            ]);
+                        });
+
+                        if ($editable->isEmpty()) {
+                            session()->flash('warning', 'No editable documents selected.');
+                            return;
+                        }
+
+                        // Redirect only with IDs of editable docs
+                        $ids = $editable->pluck('id')->toArray();
+                        return redirect(DocumentResource::getUrl('bulk-edit', [
+                            'records' => implode(',', $ids),
+                        ]));
+                    }),
+                
             ])
-            ->headerActions([]);
+            ->checkIfRecordIsSelectableUsing(fn ($record) => !in_array($record->status, [
+                'under-review',
+                'Evaluated',
+                'Reviewed',
+                'Approved',
+            ]))
+            ->headerActions([
+                // Action::make('bulkEdit')
+                //     ->label('Bulk Edit')
+                //     ->icon('heroicon-o-pencil-square')
+                //     ->url(fn () => static::getUrl('bulk-edit')),
+            ]);
     }
 
     public static function getRelations(): array
@@ -204,6 +248,8 @@ class DocumentResource extends Resource
             'index' => Pages\ListDocuments::route('/'),
             // 'create' => Pages\CreateDocument::route('/create'),
             'edit' => Pages\EditDocument::route('/{record}/edit'),
+            'bulk-edit' => Pages\BulkEditDocuments::route('/bulk-edit'),
+            
         ];
     }
 }

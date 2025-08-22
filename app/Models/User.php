@@ -31,6 +31,13 @@ class User extends Authenticatable
         'contact_number',
         'userrole',   
         'assigned_pli',
+        // evaluation workflow
+        'evaluator_id',
+        'eval_date',
+        'reviewer_id',
+        'rev_date',
+        'approver_id',
+        'approved_date',
 
         // AR 1
         'AR1_FN', 'AR1_MN', 'AR1_LN', 'AR1_Designation', 'AR1_Contact', 'AR1_Email',
@@ -38,9 +45,20 @@ class User extends Authenticatable
         'AR2_FN', 'AR2_MN', 'AR2_LN', 'AR2_Designation', 'AR2_Contact', 'AR2_Email',
         // AR 3
         'AR3_FN', 'AR3_MN', 'AR3_LN', 'AR3_Designation', 'AR3_Contact', 'AR3_Email',
-        // 'AR1_Name', 'AR1_Designation', 'AR1_Contact', 'AR1_Email',
-        // 'AR2_Name', 'AR2_Designation', 'AR2_Contact', 'AR2_Email',
-        // 'AR3_Name', 'AR3_Designation', 'AR3_Contact', 'AR3_Email',
+
+        // HO1 & HO2
+        'ho1_fn','ho1_mn','ho1_ln','ho1_designation', 'ho1_designation_other', 'ho1_contact','ho1_email',
+        'ho2_fn','ho2_mn','ho2_ln','ho2_designation', 'ho2_designation_other', 'ho2_contact','ho2_email',
+
+        // CO1 & CO2
+        'co1_fn','co1_mn','co1_ln','co1_designation','co1_contact','co1_email',
+        'co2_fn','co2_mn','co2_ln','co2_designation','co2_contact','co2_email',
+
+        // LO1 & LO2
+        'lo1_fn','lo1_mn','lo1_ln','lo1_designation','lo1_contact','lo1_email',
+        'lo2_fn','lo2_mn','lo2_ln','lo2_designation','lo2_contact','lo2_email',
+
+
     ];
 
     /**
@@ -70,11 +88,6 @@ class User extends Authenticatable
     {
         return $this->userrole === 'Evaluator';
     }
-
-    // public function isReviewer(): bool
-    // {
-    //     return $this->userrole === 'Reviewer';
-    // }
 
     protected $casts = [
         'email_verified_at' => 'datetime',
@@ -110,10 +123,19 @@ class User extends Authenticatable
     {
         return $this->hasMany(Document::class);
     }
-    // public function assignedUsers()
-    // {
-    //     return $this->belongsToMany(User::class, 'pli_user', 'user_id', 'pli_id')  // adjust if incorrect
-    //         ->withTimestamps();
-    // }
-    
+
+    public function evaluator()
+    {
+        return $this->belongsTo(User::class, 'evaluator_id');
+    }
+
+    public function reviewer()
+    {
+        return $this->belongsTo(User::class, 'reviewer_id');
+    }
+
+    public function approver()
+    {
+        return $this->belongsTo(User::class, 'approver_id');
+    }
 }

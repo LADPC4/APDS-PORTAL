@@ -14,7 +14,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Pli;
 use Filament\Tables\Filters\SelectFilter;
 use App\Models\Classification;
-
+use Filament\Facades\Filament;
+use App\Filament\Resources\RegistrantResource\Pages\ForReview;
 
 use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
@@ -28,8 +29,6 @@ use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Card;
 use Filament\Forms\Components\Checkbox;
 use Illuminate\Support\HtmlString;
-use Filament\Facades\Filament;
-
 class ForEvaluation extends ListRecords
 {
     protected static string $resource = RegistrantResource::class;
@@ -50,9 +49,22 @@ class ForEvaluation extends ListRecords
 
     public static function getNavigationBadge(): ?string
     {
-        // return RegistrantResource::getModel()::where('status', 'for-evaluation')->count();
+        // // return RegistrantResource::getModel()::where('status', 'for-evaluation')->count();
         
-        $count = RegistrantResource::getModel()::where('status', 'for-evaluation')->count();
+        // $count = RegistrantResource::getModel()::where('status', 'for-evaluation')->count();
+
+        // return $count > 0 ? (string) $count : null;
+        $user = Filament::auth()->user();
+
+        if ($user && $user->isEvaluator()) {
+            $count = RegistrantResource::getModel()::where('status', 'for-evaluation')
+                ->whereHas('plis.users', function ($query) use ($user) {
+                    $query->where('users.id', $user->id);
+                })
+                ->count();
+        } else {
+            $count = RegistrantResource::getModel()::where('status', 'for-evaluation')->count();
+        }
 
         return $count > 0 ? (string) $count : null;
     }
@@ -215,16 +227,28 @@ class ForEvaluation extends ListRecords
                 ->label('Mark as Evaluated')
                 ->icon('heroicon-o-check-circle')
                 ->action(function ($record) {
-                    $record->update(['status' => 'for-review']);
+                    // $record->update(['status' => 'for-review']);
+                    
+                    $record->update([
+                        'status'       => 'for-review',
+                        'evaluator_id' => Auth::id(), // 👈 save evaluator automatically
+                        'eval_date'    => now(),      // 👈 save timestamp
+                    ]);
 
                     Notification::make()
                         ->success()
                         ->title('PLI is forwarded to reviewer')
                         ->send();
 
-                    $this->dispatch('refresh');
+                    // Refresh table
+                    // $this->dispatch('refresh');
+
+                    // Redirect to ForReview page
+                    return redirect(ForReview::getUrl());
+                    
                 })
                 ->requiresConfirmation()
+                ->visible(fn () => Auth::user()?->userrole === 'Evaluator')
                 ->disabled(function ($record) {
                     // Check if the user (record) has any documents with eval_feedback = 0
                     // Assuming $record->documents relationship exists
@@ -250,7 +274,9 @@ class ForEvaluation extends ListRecords
                     $this->dispatch('refresh');
                 })
                 ->requiresConfirmation()
+                ->visible(fn () => Auth::user()?->userrole === 'Evaluator')
                 ->color('danger'),
+                
 
         ];
     }

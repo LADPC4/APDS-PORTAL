@@ -22,10 +22,10 @@ Route::middleware('guest')->group(function () {
     //regular registration 
     Route::get('register/new', [RegisteredUserController::class, 'create'])
         ->name('register.new');
-        
+
     //old store
     Route::post('register', [RegisteredUserController::class, 'store']);
-    
+
     Route::post('register/new', [RegisteredUserController::class, 'store'])
         ->name('register.new.store');
 
@@ -39,8 +39,21 @@ Route::middleware('guest')->group(function () {
     Route::get('register/existing/confirm', [\App\Http\Controllers\Auth\ExistingPliRegistrationController::class, 'showConfirmation'])
         ->name('register.existing.confirm');
 
-    Route::post('register/existing/confirm', [\App\Http\Controllers\Auth\ExistingPliRegistrationController::class, 'processConfirmation'])
-        ->name('register.existing.confirm.process');
+    // NEW: Email verification routes
+    Route::post('register/existing/send-verification', [\App\Http\Controllers\Auth\ExistingPliRegistrationController::class, 'sendVerificationEmail'])
+        ->name('register.existing.send-verification');
+
+    Route::get('register/existing/verification-sent', [\App\Http\Controllers\Auth\ExistingPliRegistrationController::class, 'showVerificationSent'])
+        ->name('register.existing.verification-sent');
+
+    Route::get('register/existing/verify/{token}', [\App\Http\Controllers\Auth\ExistingPliRegistrationController::class, 'verifyEmail'])
+        ->name('register.existing.verify');
+
+    Route::get('register/existing/verification-success', [\App\Http\Controllers\Auth\ExistingPliRegistrationController::class, 'showVerificationSuccess'])
+        ->name('register.existing.verification-success');
+
+    Route::get('register/existing/verification-failed', [\App\Http\Controllers\Auth\ExistingPliRegistrationController::class, 'showVerificationFailed'])
+        ->name('register.existing.verification-failed');
 
     Route::get('register/existing/complete', [\App\Http\Controllers\Auth\ExistingPliRegistrationController::class, 'showFinalForm'])
         ->name('register.existing.complete');

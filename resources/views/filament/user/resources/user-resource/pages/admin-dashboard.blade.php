@@ -50,6 +50,23 @@
     </div>
 </div>
 
+{{-- User Status Counts --}}
+<div class="mt-6 p-4 rounded-lg border bg-gray-50 dark:bg-gray-800">
+    <h3 class="font-semibold text-lg mb-3">PLI Registrant Status Overview</h3>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        @foreach ($userStatusCounts as $status => $count)
+            <div class="p-4 rounded-lg border bg-white dark:bg-gray-700 text-center">
+                <div class="text-sm text-gray-500 dark:text-gray-300">
+                    {{-- {{ $status }} --}}
+                    {{ $statusLabels[$status] ?? $status }}
+                </div>
+                <div class="text-xl font-bold text-gray-900 dark:text-white">{{ $count }}</div>
+            </div>
+        @endforeach
+    </div>
+</div>
+
+
 {{-- <!-- Notification Section -->
 <div class="mt-6 p-4 rounded-lg border">
 

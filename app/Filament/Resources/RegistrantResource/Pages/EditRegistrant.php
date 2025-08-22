@@ -6,6 +6,7 @@ use App\Filament\Resources\RegistrantResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Forms\Components\Actions\Action;
+use Filament\Facades\Filament;
 
 class EditRegistrant extends EditRecord
 {
@@ -14,6 +15,18 @@ class EditRegistrant extends EditRecord
     protected function mutateFormDataBeforeSave(array $data): array
     {
         return $data;
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        $role = Filament::auth()->user()?->userrole;
+
+        return match ($role) {
+            'Evaluator' => RegistrantResource::getUrl('for-evaluation'),
+            'Reviewer'  => RegistrantResource::getUrl('for-review'),
+            'Approver'  => RegistrantResource::getUrl('for-approval'),
+            default     => parent::getRedirectUrl(),
+        };
     }
 
     // protected function afterSave(): void

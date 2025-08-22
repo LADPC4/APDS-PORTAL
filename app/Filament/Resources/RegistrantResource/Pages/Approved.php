@@ -90,6 +90,33 @@ class Approved extends ListRecords
                     default          => 'secondary', // Fallback
                 }),
 
+            Tables\Columns\TextColumn::make('evaluator.name')
+                ->label('Evaluator')
+                ->sortable()
+                ->searchable(),
+
+            Tables\Columns\TextColumn::make('eval_date')
+                ->label('Eval Date')
+                ->date('M d, Y'),
+
+            Tables\Columns\TextColumn::make('reviewer.name')
+                ->label('Reviewer')
+                ->sortable()
+                ->searchable(),
+
+            Tables\Columns\TextColumn::make('rev_date')
+                ->label('Eval Date')
+                ->date('M d, Y'),
+
+            Tables\Columns\TextColumn::make('approver.name')
+                ->label('Approver')
+                ->sortable()
+                ->searchable(),
+
+            Tables\Columns\TextColumn::make('approved_date')
+                ->label('Approved Date')
+                ->date('M d, Y'),
+
             Tables\Columns\TextColumn::make('created_at')
                 ->label('Requested At')
                 ->dateTime()

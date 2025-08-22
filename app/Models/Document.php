@@ -16,11 +16,14 @@ class Document extends Model
         'remark',        
         'eval_feedback',
         'rev_feedback',
+        'app_feedback',
+        'prev_remark',
     ];
 
     protected $casts = [
         'eval_feedback' => 'boolean',
         'rev_feedback' => 'boolean',
+        'app_feedback' => 'boolean',
     ];
 
     public function user(): BelongsTo
@@ -40,7 +43,6 @@ class Document extends Model
             $currentUser = Auth::user();
 
             if ($currentUser?->usertype === 'user') {   
-                // $doc->remark = '—';
                 $doc->remark = '';
 
                 // Prevent changes if document is under review
@@ -70,13 +72,6 @@ class Document extends Model
                 }
             } 
             else {
-
-                // if ($doc->eval_feedback === true) {
-                //     $doc->status = 'Evaluated';
-                // } else {
-                //     // When unchecked
-                //     $doc->status = 'under-review';
-                // }
 
                 $role = $currentUser?->userrole;
 
@@ -112,198 +107,127 @@ class Document extends Model
                         }
                     }
                 }
+
+                if ($role === 'Approver') {
+                    if (!empty($doc->remark)) {
+                        $doc->app_feedback = false;
+                    }
+                    if ($doc->app_feedback === true) {
+                        $doc->status = 'Approved';
+                        $doc->remark = null;
+                    } else {
+                        if (!empty($doc->remark)) {
+                            $doc->status = 'for-revision';
+                        } elseif (empty($doc->file_path)) {
+                            $doc->status = 'Pending';
+                        } elseif (!empty($doc->file_path)) {
+                            $doc->status = 'under-review';
+                        }
+                    }
+                }
+                
+
+                // ✅ Append remark to prev_remark if changed
+                if ($doc->isDirty('remark') && !empty($doc->remark)) {
+                    $admin = $currentUser?->name ?? 'Admin';
+                    $timestamp = now()->format('M d, Y');
+
+                    $newRemark = "[{$role}] {$admin} - [{$timestamp}] \n[Remark]: " . $doc->remark;
+
+                    // prepend so newest is on top
+                    $doc->prev_remark = $newRemark . "\n" . ($doc->prev_remark ?? '');
+
+                    // keep remark if you want, or clear it after moving to history
+                    // $doc->remark = null;
+                }
             }
         });
 
-        // static::saved(function (Document $doc) {
-        //     $user = $doc->user;
-
-        //     if ($user) {
-        //         $documents = $user->documents();
-
-        //         if ($documents->whereIn('status', ['Pending', 'for-revision'])->exists()) {
-        //             if ($user->status !== 'pending') {
-        //                 $user->status = 'pending';
-        //                 $user->saveQuietly();
-        //             }
-        //             return;
-        //         }
-
-        //         if ($documents->where('status', 'for-review')->exists()) {
-        //             if ($user->status !== 'for-review') {
-        //                 $user->status = 'for-review';
-        //                 $user->saveQuietly();
-        //             }
-        //             return;
-        //         }
-
-        //         if ($documents->where('status', 'for-approval')->exists()) {
-        //             if ($user->status !== 'for-approval') {
-        //                 $user->status = 'for-approval';
-        //                 $user->saveQuietly();
-        //             }
-        //             return;
-        //         }
-
-        //         // Default fallback
-        //         if ($user->status !== 'for-evaluation') {
-        //             $user->status = 'for-evaluation';
-        //             $user->saveQuietly();
-        //         }
-        //     }
-        // });
 
         static::saved(function (Document $doc) {
-    $user = $doc->user;
+            $user = $doc->user;
 
-    if ($user) {
-        $documents = $user->documents();
+            if ($user) {
+                $documents = $user->documents();
 
-        // If user status is already advanced, only update if documents require downgrade
-        if (in_array($user->status, ['for-review', 'for-approval', 'approved'])) {
-            // Check if any documents have statuses that require lowering user status
-            $hasPendingOrRevision = $documents->whereIn('status', ['Pending', 'for-revision'])->exists();
+                // Check if user still has pending/revision documents
+                $hasPendingOrRevision = $documents->whereIn('status', ['Pending', 'for-revision'])->exists();
 
-            if ($hasPendingOrRevision && $user->status !== 'pending') {
-                $user->status = 'pending';
-                $user->saveQuietly();
+                if ($hasPendingOrRevision) {
+                    // Downgrade to pending if any document requires attention
+                    if ($user->status !== 'pending') {
+                        $user->status = 'pending';
+                        $user->saveQuietly();
+                    }
+                    return; // stop here
+                }
+
+                // ✅ No pending/revision documents left, decide next step
+                if ($user->eval_date === null) {
+                    if ($user->status !== 'for-evaluation') {
+                        $user->status = 'for-evaluation';
+                        $user->saveQuietly();
+                    }
+                } elseif ($user->rev_date === null) {
+                    if ($user->status !== 'for-review') {
+                        $user->status = 'for-review';
+                        $user->saveQuietly();
+                    }
+                } elseif ($user->approved_date === null) {
+                    if ($user->status !== 'for-approval') {
+                        $user->status = 'for-approval';
+                        $user->saveQuietly();
+                    }
+                } else {
+                    // If everything is completed, mark as approved/final
+                    if ($user->status !== 'approved') {
+                        // $user->status = 'approved';
+                        $user->saveQuietly();
+                    }
+                }
+
+                //     // If user status is already advanced, only update if documents require downgrade
+                //     if (in_array($user->status, ['for-review', 'for-approval', 'approved'])) {
+                //         // Check if any documents have statuses that require lowering user status
+                //         $hasPendingOrRevision = $documents->whereIn('status', ['Pending', 'for-revision'])->exists();
+
+                //         if ($hasPendingOrRevision && $user->status !== 'pending') {
+                //             $user->status = 'pending';
+                //             $user->saveQuietly();
+                //         }
+                //         // Else don't reset user status downward
+                //         return;
+                //     }
+
+                //     // Else run your existing logic:
+                //     if ($documents->whereIn('status', ['Pending', 'for-revision'])->exists()) {
+                //         if ($user->status !== 'pending') {
+                //             $user->status = 'pending';
+                //             $user->saveQuietly();
+                //         }
+                //         return;
+                //     } else {
+                //     if ($user->status !== 'completed') {   // or whatever status you need
+                //         $user->status = 'completed';
+                //         $user->saveQuietly();
+                //     }
+                // }
+
+                //     // Default fallback
+                //     if ($user->status !== 'for-evaluation') {
+                //         $user->status = 'for-evaluation';
+                //         $user->saveQuietly();
+                //     }
             }
-            // Else don't reset user status downward
-            return;
-        }
+        });
 
-        // Else run your existing logic:
-        if ($documents->whereIn('status', ['Pending', 'for-revision'])->exists()) {
-            if ($user->status !== 'pending') {
-                $user->status = 'pending';
-                $user->saveQuietly();
-            }
-            return;
-        }
-
-        if ($documents->where('status', 'for-review')->exists()) {
-            if ($user->status !== 'for-review') {
-                $user->status = 'for-review';
-                $user->saveQuietly();
-            }
-            return;
-        }
-
-        if ($documents->where('status', 'for-approval')->exists()) {
-            if ($user->status !== 'for-approval') {
-                $user->status = 'for-approval';
-                $user->saveQuietly();
-            }
-            return;
-        }
-
-        // Default fallback
-        if ($user->status !== 'for-evaluation') {
-            $user->status = 'for-evaluation';
-            $user->saveQuietly();
-        }
     }
-});
-
-        
-            // static::saving(function (Document $doc) {
-            //     $currentUser = Auth::user();
-
-            //     if ($currentUser?->usertype === 'user') {
-            //         // User upload logic
-            //         if (!empty($doc->file_path)) {
-            //             $doc->status = 'Submitted';
-            //         }
-            //     } else {
-            //         // Admin save logic
-            //         if (!empty($doc->remark)) {
-            //             $doc->status = 'for-revision';
-            //         } elseif (empty($doc->file_path)) {
-            //             $doc->status = 'Pending';
-            //         }
-
-            //         if ($doc->eval_feedback === true) {
-            //             $doc->status = 'Evaluated';
-            //         }
-            //     }
-            // });
-            
-            // static::saved(function (Document $doc) {
-            //     $user = $doc->user;
-
-            //     if ($user) {
-            //         $hasPendingOrRevision = $user->documents()
-            //             ->whereIn('status', ['Pending', 'for-revision'])
-            //             ->exists();
-
-            //         if ($hasPendingOrRevision) {
-            //             if ($user->status !== 'pending') {
-            //                 $user->status = 'pending';
-            //                 $user->saveQuietly();
-            //             }
-            //         } else {
-            //             if ($user->status !== 'for-evaluation') {
-            //                 $user->status = 'for-evaluation';
-            //                 $user->saveQuietly();
-            //             }
-            //         }
-            //     }
-            // });
-        }
 
     public function classificationDocument()
     {
         return $this->belongsTo(ClassificationDocument::class);
     }
 
-    // public static function createDefaultDocumentsForUser(int $userId): void
-    // {
-    //     $fixedDocuments = [
-    //         // a. For SEC registered entities:
-    //         'Certificate of Incorporation/Registration',
-    //         'Amended Articles of Incorporations and By-Laws, if any',
-    //         'Updated General Information Sheet',
-    //         'Certification from SEC Non-Derogatory',
-    //         'Monitoring Clearance',
-
-    //         // b. For BSP registered entities:
-    //         'Certificate of Authority',
-    //         'Certification of Good Standing',
-            
-    //         // c. For IC registered entities:
-    //         'Certificate of Registration',
-    //         'Amended Articles of Cooperation and By-Laws, if any;',
-    //         'Updated Cooperative Annual Progress Report (CAPR)',
-    //         'CDA Certificate of Good Standing/Compliance',
-    //         'Letter of Intent',
-    //         'Organization profile',
-    //         'Ownership structure',
-    //         'Updated CV/bio-data with photo ID. Government employees must submit CSC Form 212',
-    //         'Provide a list of products/services for DepEd personnel.',
-    //         'Certification from President/Chairman confirming legal operation for government employees benefit.',
-    //         'Annual Financial Statements',
-    //         'Copy of Income Tax Return (ITR)',
-    //         'Updated BIR Certificate of Registration (Form 2303) of TIN;',
-    //         'List/Directory of offices, personnel, and contacts',
-    //         'Sample amortization schedules for each loan term',
-    //         'Subscribed statement attesting to Truth in Lending Act with expanded Disclosure Statement on Loan/Credit Transaction.',
-    //         'Business Permits',
-    //         'Contract of Lease or proof of ownership of offices/branches;',
-    //         'Certification executed by both the private entity and the affiliate companies can sufficiently render all the services.',
-    //         'Board Resolution or Secretary\'s Certificate approving APDS accreditation application and authorized personnel.',
-    //         'Sworn declaration of no contested ownership',
-    //         'Certificate of No Intra-Corporate Dispute',
-    //         'Certification that there is no pending case with any regulatory agencies',
-    //         'Such other documents as may be deemed necessary by the Department.',
-    //     ];
-
-    //     foreach ($fixedDocuments as $docName) {
-    //         self::firstOrCreate(
-    //             ['user_id' => $userId, 'name' => $docName],
-    //             ['status' => 'Pending', 'remark' => null, 'file_path' => null]
-    //         );
-    //     }
-    // }
 
     public static function createDefaultDocumentsForUser(int $userId): void
     {

@@ -78,7 +78,7 @@
         </x-filament::section>
 
         {{-- Authorized Representatives --}}
-        <x-filament::section>
+        {{-- <x-filament::section>
             <x-slot name="heading">Authorized Representatives</x-slot>
 
             <div class="overflow-x-auto">
@@ -96,15 +96,125 @@
 
                     @foreach ($fields as $key => $label)
                         <div class="grid grid-cols-12 items-start">
-                            {{-- Label --}}
                             <div class="col-span-3 font-medium text-gray-600 pt-1">
                                 {{ $label }}
                             </div>
 
-                            {{-- Values for Rep 1 to 3 --}}
                             @foreach ([1, 2, 3] as $rep)
                                 <div class="col-span-3">
                                     {{ $this->{"AR{$rep}_$key"} ?? '—' }}
+                                </div>
+                            @endforeach
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </x-filament::section> --}}
+
+        {{-- Head Officers --}}
+        <x-filament::section>
+            <x-slot name="heading">Head Officers</x-slot>
+
+            <div class="overflow-x-auto">
+                <div class="min-w-[800px] grid">
+                    @php
+                        $fields = [
+                            'fn' => 'First Name',
+                            'mn' => 'Middle Name',
+                            'ln' => 'Last Name',
+                            'designation' => 'Designation',
+                            'contact' => 'Contact Number',
+                            'email' => 'Email',
+                        ];
+                    @endphp
+
+                    @foreach ($fields as $key => $label)
+                        <div class="grid grid-cols-12 items-start">
+                            <div class="col-span-4 font-medium text-gray-600 pt-1">
+                                {{ $label }}
+                            </div>
+
+                            @foreach ([1, 2] as $rep)
+                                <div class="col-span-4">
+                                    {{-- {{ $this->{"ho{$rep}_$key"} ?? '—' }} --}}
+                                    @if ($key === 'designation')
+                                        @if ($this->{"ho{$rep}_designation"} === 'Other')
+                                            {{ $this->{"ho{$rep}_designation_other"} ?? '—' }}
+                                        @else
+                                            {{ $this->{"ho{$rep}_designation"} ?? '—' }}
+                                        @endif
+                                    @else
+                                        {{ $this->{"ho{$rep}_$key"} ?? '—' }}
+                                    @endif
+                                    
+                                </div>
+                            @endforeach
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </x-filament::section>
+
+        {{-- Compliance Officers --}}
+        <x-filament::section>
+            <x-slot name="heading">Compliance Officers</x-slot>
+
+            <div class="overflow-x-auto">
+                <div class="min-w-[800px] grid">
+                    @php
+                        $fields = [
+                            'fn' => 'First Name',
+                            'mn' => 'Middle Name',
+                            'ln' => 'Last Name',
+                            'designation' => 'Designation',
+                            'contact' => 'Contact Number',
+                            'email' => 'Email',
+                        ];
+                    @endphp
+
+                    @foreach ($fields as $key => $label)
+                        <div class="grid grid-cols-12 items-start">
+                            <div class="col-span-4 font-medium text-gray-600 pt-1">
+                                {{ $label }}
+                            </div>
+
+                            @foreach ([1, 2] as $rep)
+                                <div class="col-span-4">
+                                    {{ $this->{"co{$rep}_$key"} ?? '—' }}
+                                </div>
+                            @endforeach
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </x-filament::section>
+
+        {{-- Loan Officers --}}
+        <x-filament::section>
+            <x-slot name="heading">Loan Officers</x-slot>
+
+            <div class="overflow-x-auto">
+                <div class="min-w-[800px] grid">
+                    @php
+                        $fields = [
+                            'fn' => 'First Name',
+                            'mn' => 'Middle Name',
+                            'ln' => 'Last Name',
+                            'designation' => 'Designation',
+                            'contact' => 'Contact Number',
+                            'email' => 'Email',
+                        ];
+                    @endphp
+
+                    @foreach ($fields as $key => $label)
+                        <div class="grid grid-cols-12 items-start">
+                            <div class="col-span-4 font-medium text-gray-600 pt-1">
+                                {{ $label }}
+                            </div>
+
+                            @foreach ([1, 2] as $rep)
+                                <div class="col-span-4">
+                                    {{ $this->{"lo{$rep}_$key"} ?? '—' }}
                                 </div>
                             @endforeach
                         </div>

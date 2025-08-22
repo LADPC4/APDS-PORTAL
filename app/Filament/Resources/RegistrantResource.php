@@ -10,6 +10,7 @@ use App\Models\Region;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Fieldset;
@@ -23,11 +24,11 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\HtmlString;
 use Filament\Facades\Filament;
-use Filament\Tables\Filters\SelectFilter;
 
 class RegistrantResource extends Resource
 {
@@ -137,18 +138,26 @@ class RegistrantResource extends Resource
                             ->disableItemDeletion()
                             ->schema([
                                 Grid::make(12)->schema([
-                                    Placeholder::make('name')
-                                        ->label('Document Name')
-                                        ->content(fn ($record) => $record->name)
-                                        ->columnSpan(5),
+                                    // Placeholder::make('name')
+                                    //     ->label('Document Name')
+                                    //     ->content(fn ($record) => $record->name)
+                                    //     ->columnSpan(5),
 
                                     Placeholder::make('file_path')
-                                        ->label('Uploaded File')
+                                        // ->label('Uploaded File')
+                                        ->label(fn ($record) => $record->name)
                                         ->content(fn ($record) => $record->file_path
                                             ? new HtmlString('<a href="' . asset('storage/' . $record->file_path) . '" target="_blank" class="text-blue-600 underline hover:text-blue-800">View / Download File</a>')
                                             : 'No file uploaded')
-                                        ->columnSpan(2),
+                                        ->columnSpan(3),
 
+                                        
+                                    TextArea::make('prev_remark')
+                                        ->label('Previous Remarks')
+                                        ->disabled()
+                                        ->rows(5)
+                                        ->extraAttributes(['style' => 'resize: none; overflow-y: auto;'])
+                                        ->columnSpan(4),
                                     // Grid::make(1)->schema([
                                     //     TextInput::make('remark')
                                     //         ->label('Remarks')
@@ -184,6 +193,9 @@ class RegistrantResource extends Resource
                                                 if ($role === 'Reviewer') {
                                                     return $get('rev_feedback') === true;
                                                 }
+                                                if ($role === 'Approver') {
+                                                    return $get('app_feedback') === true;
+                                                }
                                                 return false;
                                             })
                                             ->dehydrated(true),
@@ -201,10 +213,11 @@ class RegistrantResource extends Resource
                                             ->label('Correct File (Reviewer)')
                                             ->live()
                                             ->visible(fn () => Filament::auth()->user()?->userrole === 'Reviewer'),
-                                            // ->visible(fn () => in_array(
-                                            //     Filament::auth()->user()?->userrole,
-                                            //     ['Reviewer', 'Approver']
-                                            // )),
+
+                                        Checkbox::make('app_feedback')
+                                            ->label('Correct File (Approver)')
+                                            ->live()
+                                            ->visible(fn () => Filament::auth()->user()?->userrole === 'Approver'),
 
                                     ])->columnSpan(5),
                                 ]),
@@ -234,6 +247,33 @@ class RegistrantResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->toggleable(),
+
+                TextColumn::make('evaluator.name')
+                    ->label('Evaluator')
+                    ->sortable()
+                    ->searchable(),
+
+                TextColumn::make('eval_date')
+                    ->label('Eval Date')
+                    ->date('M d, Y'),
+
+                TextColumn::make('reviewer.name')
+                    ->label('Reviewer')
+                    ->sortable()
+                    ->searchable(),
+
+                TextColumn::make('rev_date')
+                    ->label('Review Date')
+                    ->date('M d, Y'),
+
+                TextColumn::make('approver.name')
+                    ->label('Approver')
+                    ->sortable()
+                    ->searchable(),
+
+                TextColumn::make('approved_date')
+                    ->label('Approved Date')
+                    ->date('M d, Y'),
                 //
             ])
             ->filters([

@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Pli;
 use Filament\Tables\Filters\SelectFilter;
 use App\Models\Classification;
+use Filament\Facades\Filament;
+use App\Filament\Resources\RegistrantResource\Pages\Approved;
+
 
 class ForApproval extends ListRecords
 {
@@ -37,7 +40,22 @@ class ForApproval extends ListRecords
     {
         // return RegistrantResource::getModel()::where('status', 'for-approval')->count();
         
-        $count = RegistrantResource::getModel()::where('status', 'for-approval')->count();
+        // $count = RegistrantResource::getModel()::where('status', 'for-approval')->count();
+
+        // return $count > 0 ? (string) $count : null;
+
+        
+        $user = Filament::auth()->user();
+
+        if ($user && $user->isEvaluator()) {
+            $count = RegistrantResource::getModel()::where('status', 'for-approval')
+                ->whereHas('plis.users', function ($query) use ($user) {
+                    $query->where('users.id', $user->id);
+                })
+                ->count();
+        } else {
+            $count = RegistrantResource::getModel()::where('status', 'for-approval')->count();
+        }
 
         return $count > 0 ? (string) $count : null;
     }
@@ -98,6 +116,31 @@ class ForApproval extends ListRecords
                     default          => 'secondary', // Fallback
                 }),
 
+            Tables\Columns\TextColumn::make('evaluator.name')
+                ->label('Evaluator')
+                ->sortable()
+                ->searchable()
+                ->toggleable(isToggledHiddenByDefault: true),
+
+            Tables\Columns\TextColumn::make('eval_date')
+                ->label('Eval Date')
+                ->date('M d, Y')
+                ->searchable()
+                ->toggleable(isToggledHiddenByDefault: true),
+
+            Tables\Columns\TextColumn::make('reviewer.name')
+                ->label('Reviewer')
+                ->sortable()
+                ->searchable()
+                ->searchable()
+                ->toggleable(isToggledHiddenByDefault: true),
+
+            Tables\Columns\TextColumn::make('rev_date')
+                ->label('Rev Date')
+                ->date('M d, Y')
+                ->searchable()
+                ->toggleable(isToggledHiddenByDefault: true),
+
             Tables\Columns\TextColumn::make('created_at')
                 ->label('Requested At')
                 ->dateTime()
@@ -116,19 +159,33 @@ class ForApproval extends ListRecords
                 ->label('Approve')
                 ->icon('heroicon-o-check-circle')
                 ->action(function ($record) {
-                    $record->update(['status' => 'approved']);
+                    
+                    $record->update([
+                        'status'       => 'approved',
+                        'approver_id' => Auth::id(), 
+                        'approved_date'    => now(),      
+                    ]);
 
                     Notification::make()
                         ->success()
                         ->title('PLI is approved!')
                         ->send();
 
-                    $this->dispatch('refresh');
+                    // $this->dispatch('refresh');
+                    
+                    return redirect(RegistrantResource::getUrl('approved'));
                 })
                 ->requiresConfirmation()
+                ->visible(fn () => Auth::user()?->userrole === 'Approver')
                 ->color('success')
-                // ->visible(! $isEvaluator)                
-                ->visible(fn () => !($isEvaluator || $isReviewer))
+                ->disabled(function ($record) {
+                    return $record->documents()->where('app_feedback', false)->exists();
+                })
+                ->color(function ($record) {
+                    return $record->documents()->where('app_feedback', false)->exists()
+                        ? 'secondary' // neutral color when disabled
+                        : 'success';   // green when enabled
+                })
                 ,
 
             Action::make('reject')
@@ -142,18 +199,25 @@ class ForApproval extends ListRecords
                         ->title('User Rejected')
                         ->send();
 
-                    $this->dispatch('refresh');
+                    // $this->dispatch('refresh');
+                    
+                    // return redirect(Approved::getUrl());
+                    return redirect(RegistrantResource::getUrl('rejected'));
                 })
                 ->requiresConfirmation()
                 ->color('danger')
                 // ->visible(! $isEvaluator)                
-                ->visible(fn () => !($isEvaluator || $isReviewer))
+                // ->visible(fn () => !($isEvaluator || $isReviewer))
+                
+                ->visible(fn () => Auth::user()?->userrole === 'Approver')
                 ,
 
             Tables\Actions\ViewAction::make(),
             Tables\Actions\EditAction::make()
                 // ->visible(! $isEvaluator)                
-                ->visible(fn () => !($isEvaluator || $isReviewer))
+                // ->visible(fn () => !($isEvaluator || $isReviewer))
+                
+                ->visible(fn () => Auth::user()?->userrole === 'Approver')
                 ,
         ];
     }
