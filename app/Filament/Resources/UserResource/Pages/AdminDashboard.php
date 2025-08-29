@@ -25,7 +25,7 @@ class AdminDashboard extends Page
 
         // Count users by status
         $statuses = [
-            'Pending',
+            'pending',
             'for-evaluation',
             'for-review',
             'for-approval',
@@ -34,7 +34,7 @@ class AdminDashboard extends Page
         ];
 
         $this->statusLabels = [
-            'Pending'        => 'Pending',
+            'pending'        => 'Pending Document Submission',
             'for-evaluation' => 'For Evaluation',
             'for-review'     => 'For Review',
             'for-approval'   => 'For Approval',

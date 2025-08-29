@@ -1,5 +1,5 @@
 <x-filament-panels::page>
-<div class="fi-section-content p-4 rounded-lg border">
+{{-- <div class="fi-section-content p-4 rounded-lg border">
     <div class="flex items-center gap-x-3">
         <img class="fi-avatar object-cover object-center fi-circular rounded-full h-10 w-10 fi-user-avatar"
              src="https://ui-avatars.com/api/?name={{ urlencode($user->name ?? 'Admin') }}&color=FFFFFF&background=09090b"
@@ -48,45 +48,59 @@
             </button>
         </form>
     </div>
-</div>
+</div> --}}
 
-{{-- User Status Counts --}}
-<div class="mt-6 p-4 rounded-lg border bg-gray-50 dark:bg-gray-800">
+{{-- <div class="mt-6 p-4 rounded-lg border bg-gray-50 dark:bg-gray-800">
     <h3 class="font-semibold text-lg mb-3">PLI Registrant Status Overview</h3>
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-4">
         @foreach ($userStatusCounts as $status => $count)
             <div class="p-4 rounded-lg border bg-white dark:bg-gray-700 text-center">
                 <div class="text-sm text-gray-500 dark:text-gray-300">
-                    {{-- {{ $status }} --}}
                     {{ $statusLabels[$status] ?? $status }}
                 </div>
                 <div class="text-xl font-bold text-gray-900 dark:text-white">{{ $count }}</div>
             </div>
         @endforeach
     </div>
+</div> --}}
+
+@php
+    $firstRowStatuses = ['pending', 'approved', 'rejected'];
+    $secondRowStatuses = ['for-evaluation', 'for-review', 'for-approval'];
+@endphp
+
+<div class="p-4 rounded-lg border bg-gray-50 dark:bg-gray-800">
+    <h3 class="font-semibold text-lg mb-3">PLI Registrant Status Overview</h3>
+
+    {{-- First Row --}}
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-4 mb-4">
+        @foreach ($firstRowStatuses as $status)
+            <div class="p-4 rounded-lg border bg-white dark:bg-gray-700 text-center">
+                <div class="text-sm text-gray-500 dark:text-gray-300">
+                    {{ $statusLabels[$status] ?? $status }}
+                </div>
+                <div class="text-xl font-bold text-gray-900 dark:text-white">
+                    {{ $userStatusCounts[$status] ?? 0 }}
+                </div>
+            </div>
+        @endforeach
+    </div>
+
+    {{-- Second Row --}}
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-4">
+        @foreach ($secondRowStatuses as $status)
+            <div class="p-4 rounded-lg border bg-white dark:bg-gray-700 text-center">
+                <div class="text-sm text-gray-500 dark:text-gray-300">
+                    {{ $statusLabels[$status] ?? $status }}
+                </div>
+                <div class="text-xl font-bold text-gray-900 dark:text-white">
+                    {{ $userStatusCounts[$status] ?? 0 }}
+                </div>
+            </div>
+        @endforeach
+    </div>
 </div>
 
-
-{{-- <!-- Notification Section -->
-<div class="mt-6 p-4 rounded-lg border">
-
-    <h3 class="font-semibold text-lg">Notifications:</h3>
-        <p class="mt-1">Accreditation Status:
-        @if ($user->status === 'for-review')
-            <span style="color: #6b7280;">Under Review</span>
-        @elseif ($user->status === 'approved')
-            <span style="color: #16a34a;">Approved</span>
-        @elseif ($user->status === 'rejected')
-            <span style="color: #dc2626;">Rejected</span>
-        @else
-            <span>Unknown</span>
-        @endif
-        </p>
-    @if ($user->status === 'for-review')
-        <p>An Administrator is currently validating your submitted documents.</p>
-        <p>This process usually takes 2-3 business days.</p>
-    @endif
-</div> --}}
 
 </x-filament-panels::page>
 

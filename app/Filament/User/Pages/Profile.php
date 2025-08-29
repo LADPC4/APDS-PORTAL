@@ -14,6 +14,9 @@
 
 namespace App\Filament\User\Pages;
 
+use Spatie\Activitylog\Models\Activity;
+use Spatie\Activitylog\Traits\LogsActivity;
+
 use Filament\Pages\Page;
 use Filament\Forms;
 use Filament\Forms\Contracts\HasForms;
@@ -202,6 +205,85 @@ class Profile extends Page implements HasForms
         'lo2_fn','lo2_mn','lo2_ln','lo2_designation','lo2_contact','lo2_email',
     ]));
     }
+
+    protected array $fieldLabels = [
+        // ================= Institute =================
+        'name' => 'Institute Name',
+        'email' => 'Official Email Address',
+        'contact_number' => 'Contact Number',
+        'address' => 'Main Office Address',
+        'classification_id' => 'Classification',
+        'region' => 'Regions Covered',
+
+        // ================= Authorized Representatives =================
+        'AR1_FN' => 'Authorized Representative 1 - First Name',
+        'AR1_MN' => 'Authorized Representative 1 - Middle Name',
+        'AR1_LN' => 'Authorized Representative 1 - Last Name',
+        'AR1_Designation' => 'Authorized Representative 1 - Designation or Position',
+        'AR1_Contact' => 'Authorized Representative 1 - Contact Number',
+        'AR1_Email' => 'Authorized Representative 1 - Email',
+
+        'AR2_FN' => 'Authorized Representative 2 - First Name',
+        'AR2_MN' => 'Authorized Representative 2 - Middle Name',
+        'AR2_LN' => 'Authorized Representative 2 - Last Name',
+        'AR2_Designation' => 'Authorized Representative 2 - Designation or Position',
+        'AR2_Contact' => 'Authorized Representative 2 - Contact Number',
+        'AR2_Email' => 'Authorized Representative 2 - Email',
+
+        'AR3_FN' => 'Authorized Representative 3 - First Name',
+        'AR3_MN' => 'Authorized Representative 3 - Middle Name',
+        'AR3_LN' => 'Authorized Representative 3 - Last Name',
+        'AR3_Designation' => 'Authorized Representative 3 - Designation or Position',
+        'AR3_Contact' => 'Authorized Representative 3 - Contact Number',
+        'AR3_Email' => 'Authorized Representative 3 - Email',
+
+        // ================= Head Officers =================
+        'ho1_fn' => 'Head Officer 1 - First Name',
+        'ho1_mn' => 'Head Officer 1 - Middle Name',
+        'ho1_ln' => 'Head Officer 1 - Last Name',
+        'ho1_designation' => 'Head Officer 1 - Designation',
+        'ho1_designation_other' => 'Head Officer 1 - Other Designation',
+        'ho1_contact' => 'Head Officer 1 - Contact Number',
+        'ho1_email' => 'Head Officer 1 - Email',
+
+        'ho2_fn' => 'Head Officer 2 - First Name',
+        'ho2_mn' => 'Head Officer 2 - Middle Name',
+        'ho2_ln' => 'Head Officer 2 - Last Name',
+        'ho2_designation' => 'Head Officer 2 - Designation',
+        'ho2_designation_other' => 'Head Officer 2 - Other Designation',
+        'ho2_contact' => 'Head Officer 2 - Contact Number',
+        'ho2_email' => 'Head Officer 2 - Email',
+
+        // ================= Compliance Officers =================
+        'co1_fn' => 'Compliance Officer 1 - First Name',
+        'co1_mn' => 'Compliance Officer 1 - Middle Name',
+        'co1_ln' => 'Compliance Officer 1 - Last Name',
+        'co1_designation' => 'Compliance Officer 1 - Designation',
+        'co1_contact' => 'Compliance Officer 1 - Contact Number',
+        'co1_email' => 'Compliance Officer 1 - Email',
+
+        'co2_fn' => 'Compliance Officer 2 - First Name',
+        'co2_mn' => 'Compliance Officer 2 - Middle Name',
+        'co2_ln' => 'Compliance Officer 2 - Last Name',
+        'co2_designation' => 'Compliance Officer 2 - Designation',
+        'co2_contact' => 'Compliance Officer 2 - Contact Number',
+        'co2_email' => 'Compliance Officer 2 - Email',
+
+        // ================= Loan Officers =================
+        'lo1_fn' => 'Loan Officer 1 - First Name',
+        'lo1_mn' => 'Loan Officer 1 - Middle Name',
+        'lo1_ln' => 'Loan Officer 1 - Last Name',
+        'lo1_designation' => 'Loan Officer 1 - Designation',
+        'lo1_contact' => 'Loan Officer 1 - Contact Number',
+        'lo1_email' => 'Loan Officer 1 - Email',
+
+        'lo2_fn' => 'Loan Officer 2 - First Name',
+        'lo2_mn' => 'Loan Officer 2 - Middle Name',
+        'lo2_ln' => 'Loan Officer 2 - Last Name',
+        'lo2_designation' => 'Loan Officer 2 - Designation',
+        'lo2_contact' => 'Loan Officer 2 - Contact Number',
+        'lo2_email' => 'Loan Officer 2 - Email',
+    ];
         
     public static function getNavigationSort(): ?int
     {
@@ -211,6 +293,8 @@ class Profile extends Page implements HasForms
     protected function getFormSchema(): array
     {
         // return $this->getProfileFormSchema(false);
+        // $isApproved = Auth::user()?->status === 'approved';
+        $isApprovedOrRejected = in_array(Auth::user()?->status, ['approved', 'rejected']);
         
         return [
             
@@ -221,7 +305,7 @@ class Profile extends Page implements HasForms
                     TextInput::make('name')
                         ->label('Institute Name')
                         ->required()
-                        
+                        ->disabled($isApprovedOrRejected)
                         ->columnSpan('full'),
 
                     Grid::make(2)->schema([
@@ -230,7 +314,7 @@ class Profile extends Page implements HasForms
                             ->label('Classification')
                             ->options(\App\Models\Classification::orderBy('name')->pluck('name', 'id')->toArray())
                             ->required()
-                            
+                            ->disabled($isApprovedOrRejected)
                             ->searchable(),
                             
                         Select::make('region')
@@ -245,6 +329,7 @@ class Profile extends Page implements HasForms
                             
                             ->preload()
                             ->searchable()
+                            ->disabled($isApprovedOrRejected)
                             ->required(),
                     ]),
 
@@ -252,18 +337,20 @@ class Profile extends Page implements HasForms
                         TextInput::make('email')
                             ->label('Official Email Address')
                             // ->disabled(true)
+                            ->disabled($isApprovedOrRejected)
                             ->readonly(),
 
                         TextInput::make('contact_number')
                             ->label('Contact Number')
                             ->required()
+                            ->disabled($isApprovedOrRejected)
                             ,
                     ]),
 
                     TextInput::make('address')
                         ->label('Main Office Address')
                         ->required()
-                        
+                        ->disabled($isApprovedOrRejected)
                         ->columnSpan('full'),
                 
                 ])
@@ -278,6 +365,7 @@ class Profile extends Page implements HasForms
                         TextInput::make('AR1_Contact')->label('Contact Number')->columnSpan('full'),
                         TextInput::make('AR1_Email')->label('Email')->email()->columnSpan('full'),
                     ])
+                    ->disabled($isApprovedOrRejected)
                     ->columnSpan(1),
 
                     Fieldset::make('Authorized Representative 2')->schema([
@@ -289,6 +377,7 @@ class Profile extends Page implements HasForms
                         TextInput::make('AR2_Contact')->label('Contact Number')->columnSpan('full'),
                         TextInput::make('AR2_Email')->label('Email')->email()->columnSpan('full'),
                     ])
+                    ->disabled($isApprovedOrRejected)
                     ->columnSpan(1),
 
                     Fieldset::make('Authorized Representative 3')->schema([
@@ -300,107 +389,110 @@ class Profile extends Page implements HasForms
                         TextInput::make('AR3_Contact')->label('Contact Number')->columnSpan('full'),
                         TextInput::make('AR3_Email')->label('Email')->email()->columnSpan('full'),
                     ])
+                    ->disabled($isApprovedOrRejected)
                     ->columnSpan(1),
                 ]),
 
-                Grid::make(2) // Outer grid, 2 columns for the 2 fieldsets
-                    ->schema([
+                // Grid::make(2) // Outer grid, 2 columns for the 2 fieldsets
+                //     ->schema([
 
-                        // ================= Head Officer 1 =================
-                        Fieldset::make('Head Officer 1')
-                            ->schema([
-                                Fieldset::make('Name')
-                                    ->schema([
-                                        TextInput::make('ho1_fn')->label('First Name')->columnSpan('full')->required(),
-                                        TextInput::make('ho1_mn')->label('Middle Name')->columnSpan('full'),
-                                        TextInput::make('ho1_ln')->label('Last Name')->columnSpan('full')->required(),
-                                    ])
-                                    ->columnSpan(1),
+                //         // ================= Head Officer 1 =================
+                //         Fieldset::make('Head Officer 1')
+                //             ->schema([
+                //                 Fieldset::make('Name')
+                //                     ->schema([
+                //                         TextInput::make('ho1_fn')->label('First Name')->columnSpan('full')->required(),
+                //                         TextInput::make('ho1_mn')->label('Middle Name')->columnSpan('full'),
+                //                         TextInput::make('ho1_ln')->label('Last Name')->columnSpan('full')->required(),
+                //                     ])
+                //                     ->columnSpan(1),
 
-                                Fieldset::make('Details')
-                                    ->schema([
-                                        Select::make('ho1_designation')->label('Designation')
-                                            ->options([
-                                                'President' => 'President',
-                                                'Vice President' => 'Vice President',
-                                                'Executive Vice President' => 'Executive Vice President',
-                                                'Senior Vice President' => 'Senior Vice President',
-                                                'Chairman/Chairwoman' => 'Chairman/Chairwoman',
-                                                'General Manager' => 'General Manager',
-                                                'Other' => 'Other',
-                                            ])
-                                            ->reactive()
-                                            ->columnSpan('full')
-                                            ->required()
-                                            ->afterStateUpdated(function ($state, callable $set) {
-                                                // Clear the "Other" input immediately when designation is not 'Other'
-                                                if ($state !== 'Other') {
-                                                    $set('ho1_designation_other', null);
-                                                }
-                                            }),
+                //                 Fieldset::make('Details')
+                //                     ->schema([
+                //                         Select::make('ho1_designation')->label('Designation')
+                //                             ->options([
+                //                                 'President' => 'President',
+                //                                 'Vice President' => 'Vice President',
+                //                                 'Executive Vice President' => 'Executive Vice President',
+                //                                 'Senior Vice President' => 'Senior Vice President',
+                //                                 'Chairman/Chairwoman' => 'Chairman/Chairwoman',
+                //                                 'General Manager' => 'General Manager',
+                //                                 'Other' => 'Other',
+                //                             ])
+                //                             ->reactive()
+                //                             ->columnSpan('full')
+                //                             ->required()
+                //                             ->afterStateUpdated(function ($state, callable $set) {
+                //                                 // Clear the "Other" input immediately when designation is not 'Other'
+                //                                 if ($state !== 'Other') {
+                //                                     $set('ho1_designation_other', null);
+                //                                 }
+                //                             }),
 
-                                        TextInput::make('ho1_designation_other')
-                                            ->label('Other Designation')
-                                            ->reactive()
-                                            ->visible(fn ($get) => $get('ho1_designation') === 'Other')
-                                            ->required(fn ($get) => $get('ho1_designation') === 'Other')
-                                            ->dehydrateStateUsing(fn ($state, $get) => $get('ho1_designation') === 'Other' ? $state : null)
-                                            ->columnSpan('full'),
+                //                         TextInput::make('ho1_designation_other')
+                //                             ->label('Other Designation')
+                //                             ->reactive()
+                //                             ->visible(fn ($get) => $get('ho1_designation') === 'Other')
+                //                             ->required(fn ($get) => $get('ho1_designation') === 'Other')
+                //                             ->dehydrateStateUsing(fn ($state, $get) => $get('ho1_designation') === 'Other' ? $state : null)
+                //                             ->columnSpan('full'),
 
-                                        TextInput::make('ho1_contact')->label('Contact Number')->columnSpan('full')->required(),
-                                        TextInput::make('ho1_email')->label('Email')->email()->columnSpan('full')->required(),
-                                    ])
-                                    ->columnSpan(1),
-                            ])
-                            ->columnSpan(1),
+                //                         TextInput::make('ho1_contact')->label('Contact Number')->columnSpan('full')->required(),
+                //                         TextInput::make('ho1_email')->label('Email')->email()->columnSpan('full')->required(),
+                //                     ])
+                //                     ->columnSpan(1),
+                //             ])
+                //             ->disabled($isApprovedOrRejected)
+                //             ->columnSpan(1),
 
-                        // ================= Head Officer 2 =================
-                        Fieldset::make('Head Officer 2')
-                            ->schema([
-                                Fieldset::make('Name')
-                                    ->schema([
-                                        TextInput::make('ho2_fn')->label('First Name')->columnSpan('full'),
-                                        TextInput::make('ho2_mn')->label('Middle Name')->columnSpan('full'),
-                                        TextInput::make('ho2_ln')->label('Last Name')->columnSpan('full'),
-                                    ])
-                                    ->columnSpan(1),
+                //         // ================= Head Officer 2 =================
+                //         Fieldset::make('Head Officer 2')
+                //             ->schema([
+                //                 Fieldset::make('Name')
+                //                     ->schema([
+                //                         TextInput::make('ho2_fn')->label('First Name')->columnSpan('full'),
+                //                         TextInput::make('ho2_mn')->label('Middle Name')->columnSpan('full'),
+                //                         TextInput::make('ho2_ln')->label('Last Name')->columnSpan('full'),
+                //                     ])
+                //                     ->columnSpan(1),
 
-                                Fieldset::make('Details')
-                                    ->schema([
-                                        Select::make('ho2_designation')->label('Designation')
-                                            ->options([
-                                                'President' => 'President',
-                                                'Vice President' => 'Vice President',
-                                                'Executive Vice President' => 'Executive Vice President',
-                                                'Senior Vice President' => 'Senior Vice President',
-                                                'Chairman/Chairwoman' => 'Chairman/Chairwoman',
-                                                'General Manager' => 'General Manager',
-                                                'Other' => 'Other',
-                                            ])
-                                            ->reactive()
-                                            ->columnSpan('full')
-                                            ->afterStateUpdated(function ($state, callable $set) {
-                                                // Clear the "Other" input immediately when designation is not 'Other'
-                                                if ($state !== 'Other') {
-                                                    $set('ho2_designation_other', null);
-                                                }
-                                            }),
+                //                 Fieldset::make('Details')
+                //                     ->schema([
+                //                         Select::make('ho2_designation')->label('Designation')
+                //                             ->options([
+                //                                 'President' => 'President',
+                //                                 'Vice President' => 'Vice President',
+                //                                 'Executive Vice President' => 'Executive Vice President',
+                //                                 'Senior Vice President' => 'Senior Vice President',
+                //                                 'Chairman/Chairwoman' => 'Chairman/Chairwoman',
+                //                                 'General Manager' => 'General Manager',
+                //                                 'Other' => 'Other',
+                //                             ])
+                //                             ->reactive()
+                //                             ->columnSpan('full')
+                //                             ->afterStateUpdated(function ($state, callable $set) {
+                //                                 // Clear the "Other" input immediately when designation is not 'Other'
+                //                                 if ($state !== 'Other') {
+                //                                     $set('ho2_designation_other', null);
+                //                                 }
+                //                             }),
 
-                                        TextInput::make('ho2_designation_other')
-                                            ->label('Other Designation')
-                                            ->reactive()
-                                            ->visible(fn ($get) => $get('ho2_designation') === 'Other')
-                                            ->required(fn ($get) => $get('ho2_designation') === 'Other')
-                                            ->dehydrateStateUsing(fn ($state, $get) => $get('ho2_designation') === 'Other' ? $state : null)
-                                            ->columnSpan('full'),
+                //                         TextInput::make('ho2_designation_other')
+                //                             ->label('Other Designation')
+                //                             ->reactive()
+                //                             ->visible(fn ($get) => $get('ho2_designation') === 'Other')
+                //                             ->required(fn ($get) => $get('ho2_designation') === 'Other')
+                //                             ->dehydrateStateUsing(fn ($state, $get) => $get('ho2_designation') === 'Other' ? $state : null)
+                //                             ->columnSpan('full'),
 
-                                        TextInput::make('ho2_contact')->label('Contact Number')->columnSpan('full'),
-                                        TextInput::make('ho2_email')->label('Email')->email()->columnSpan('full'),
-                                    ])
-                                    ->columnSpan(1),
-                            ])
-                            ->columnSpan(1),
-                        ]),
+                //                         TextInput::make('ho2_contact')->label('Contact Number')->columnSpan('full'),
+                //                         TextInput::make('ho2_email')->label('Email')->email()->columnSpan('full'),
+                //                     ])
+                //                     ->columnSpan(1),
+                //             ])
+                //             ->disabled($isApprovedOrRejected)
+                //             ->columnSpan(1),
+                //         ]),
 
                 Grid::make(2) // Outer grid, 2 columns for the 2 fieldsets
                     ->schema([
@@ -424,6 +516,7 @@ class Profile extends Page implements HasForms
                                     ])
                                     ->columnSpan(1),
                             ])
+                            ->disabled($isApprovedOrRejected)
                             ->columnSpan(1),
 
                         // ================= Compliance Officer 2 =================
@@ -445,6 +538,7 @@ class Profile extends Page implements HasForms
                                     ])
                                     ->columnSpan(1),
                             ])
+                            ->disabled($isApprovedOrRejected)
                             ->columnSpan(1),
                         ]),
 
@@ -470,6 +564,7 @@ class Profile extends Page implements HasForms
                                     ])
                                     ->columnSpan(1),
                             ])
+                            ->disabled($isApprovedOrRejected)
                             ->columnSpan(1),
 
                         // ================= Loan Officer 2 =================
@@ -491,6 +586,7 @@ class Profile extends Page implements HasForms
                                     ])
                                     ->columnSpan(1),
                             ])
+                            ->disabled($isApprovedOrRejected)
                             ->columnSpan(1),
                         ]),
 
@@ -500,6 +596,32 @@ class Profile extends Page implements HasForms
 
     public function submit()
     {
+        // if (Auth::user()?->status === 'approved') {
+        //     Notification::make()
+        //         ->title('Profile is approved and cannot be edited.')
+        //         ->warning()
+        //         ->send();
+
+        //     return redirect()->route('filament.user.pages.profile-view');
+        // }
+        // if (Auth::user()?->status === 'rejected') {
+        //     Notification::make()
+        //         ->title('Profile is rejected and cannot be edited.')
+        //         ->warning()
+        //         ->send();
+
+        //     return redirect()->route('filament.user.pages.profile-view');
+        // }
+        
+        if (Auth::user()?->status === 'approved' || Auth::user()?->status === 'rejected') {
+            Notification::make()
+                ->title('Profile cannot be edited.')
+                ->warning()
+                ->send();
+
+            return redirect()->route('filament.user.pages.profile-view');
+        }
+
         $data = $this->form->getState();
 
         if (($data['ho1_designation'] ?? null) !== 'Other') {
@@ -528,7 +650,80 @@ class Profile extends Page implements HasForms
         }
 
         $user = Auth::user();
+
+        // // Get only the changed fields
+
+        $changes = [];
+        $changedFields = [];
+
+        foreach ($data as $key => $value) {
+            if ($user->$key != $value) {
+                $old = $user->$key;
+                $new = $value;
+
+                // Keep arrays readable
+                if (is_array($old)) {
+                    $old = implode(', ', $old);
+                }
+                if (is_array($new)) {
+                    $new = implode(', ', $new);
+                }
+
+                $changes[$this->fieldLabels[$key] ?? $key] = [
+                    'old' => $old,
+                    'new' => $new,
+                ];
+
+                $changedFields[] = $this->fieldLabels[$key] ?? $key;
+            }
+        }
+
         $user->update($data);
+
+        // Log changes if any
+        if (!empty($changes)) {
+            $properties = [];
+            foreach ($changes as $field => $vals) {
+                $label = $this->fieldLabels[$field] ?? $field;
+
+                $old = is_array($vals['old']) ? implode(', ', $vals['old']) : ($vals['old'] ?? 'null');
+                $new = is_array($vals['new']) ? implode(', ', $vals['new']) : ($vals['new'] ?? 'null');
+
+                // Only store Before/After, no duplicate label
+                $properties[$label] = "[Before]: {$old}<br>[After]: {$new}";
+            }
+
+            activity()
+                ->event('Profile Update')
+                ->causedBy($user)
+                ->performedOn($user)
+                ->withProperties($properties)
+                ->log('Profile fields updated');
+        }
+
+        // foreach ($data as $key => $value) {
+        //     if ($user->$key != $value) {
+        //         $changes[$key] = [
+        //             'old' => $user->$key,
+        //             'new' => $value,
+        //         ];
+        //         $label = $this->fieldLabels[$key] ?? $key;
+        //         $changedFields[] = $label;
+        //     }
+        // }
+
+        // $user->update($data);
+
+        // // Log the changes if any
+        // if (!empty($changes)) {
+        //     $fieldsList = implode(', ', $changedFields);
+        //     activity()
+        //         ->event('Profile Update')
+        //         ->causedBy($user)
+        //         ->performedOn($user)
+        //         ->withProperties($changes)
+        //         ->log('Changed fields: ' . $fieldsList);
+        // }
 
         Notification::make()
             ->title('Profile updated successfully')

@@ -214,6 +214,14 @@ class ProfileView extends Page implements HasForms
 
     protected function getHeaderActions(): array
     {
+        // if ($this->user && $this->user->status === 'approved') {
+        //     return [];
+        // }
+
+        if ($this->user && in_array($this->user->status, ['approved', 'rejected'])) {
+            return [];
+        }
+
         return [
             Action::make('edit')
                 ->label('Edit Profile')

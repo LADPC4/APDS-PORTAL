@@ -15,11 +15,12 @@ use App\Models\Pli;
 use Filament\Tables\Filters\SelectFilter;
 use App\Models\Classification;
 
-class Rejected extends ListRecords
+
+class Approved extends ListRecords
 {
     protected static string $resource = RegistrantResource::class;
 
-    public ?string $activeTab = 'rejected';
+    public ?string $activeTab = 'approved';
 
     // protected function getHeaderActions(): array
     // {
@@ -37,7 +38,7 @@ class Rejected extends ListRecords
     // {
     //     return parent::getTableQuery()
     //         ->where('usertype', 'user')
-    //         ->where('status', 'rejected');
+    //         ->where('status', 'approved');
     // }
 
     public function table(Table $table): Table
@@ -89,6 +90,33 @@ class Rejected extends ListRecords
                     default          => 'secondary', // Fallback
                 }),
 
+            Tables\Columns\TextColumn::make('evaluator.name')
+                ->label('Evaluator')
+                ->sortable()
+                ->searchable(),
+
+            Tables\Columns\TextColumn::make('eval_date')
+                ->label('Eval Date')
+                ->date('M d, Y'),
+
+            Tables\Columns\TextColumn::make('reviewer.name')
+                ->label('Reviewer')
+                ->sortable()
+                ->searchable(),
+
+            Tables\Columns\TextColumn::make('rev_date')
+                ->label('Eval Date')
+                ->date('M d, Y'),
+
+            Tables\Columns\TextColumn::make('approver.name')
+                ->label('Approver')
+                ->sortable()
+                ->searchable(),
+
+            Tables\Columns\TextColumn::make('approved_date')
+                ->label('Approved Date')
+                ->date('M d, Y'),
+
             Tables\Columns\TextColumn::make('created_at')
                 ->label('Requested At')
                 ->dateTime()
@@ -101,26 +129,91 @@ class Rejected extends ListRecords
         $user = Auth::user();
         $isEvaluator = $user?->userrole === 'Evaluator';
         $isReviewer = $user?->userrole === 'Reviewer';
+        
         return [
             Tables\Actions\ViewAction::make(),
-            // Tables\Actions\EditAction::make(),
+            Tables\Actions\EditAction::make()
+                ->visible(fn () => !($isEvaluator || $isReviewer)),
 
-            Action::make('reconsider')
-                ->label('Reconsider')
-                ->icon('heroicon-o-arrow-path')
-                ->color('primary')
+            Action::make('generateTcaa')
+                ->label('Generate TCAA')
+                ->icon('heroicon-o-document-arrow-down')
+                ->color('success')
+                ->visible(function () use ($user) {
+                    return $user && in_array($user->userrole, ['SuperAdmin', 'Approver']);
+                })
+                ->requiresConfirmation()
+                ->modalHeading('Generate TCAA Document')
+                ->modalDescription(function ($record) {
+                    $pliCount = $record->plis()->count();
+                    if ($pliCount > 1) {
+                        return 'This user has multiple PLIs. Please select the PLI and TCAA type to generate:';
+                    } else {
+                        return 'Select which TCAA document type to generate:';
+                    }
+                })
+                ->modalSubmitActionLabel('Generate')
+                ->form(function ($record) {
+                    $userPlis = $record->plis()->get();
+                    $pliOptions = $userPlis->pluck('name', 'id')->toArray();
+                    
+                    $formFields = [];
+                    
+                    // If user has multiple PLIs, show PLI selection
+                    if ($userPlis->count() > 1) {
+                        $formFields[] = \Filament\Forms\Components\Select::make('pli_id')
+                            ->label('Select PLI')
+                            ->options($pliOptions)
+                            ->required()
+                            ->native(false);
+                    }
+                    
+                    // Always show TCAA type selection
+                    $formFields[] = \Filament\Forms\Components\Select::make('tcaa_type')
+                        ->label('TCAA Document Type')
+                        ->options([
+                            'loans' => 'TCAA for Loans',
+                            'insurance' => 'TCAA for Insurance Premia and Membership Dues/Contributions',
+                        ])
+                        ->required()
+                        ->native(false);
+                    
+                    return $formFields;
+                })
+                ->action(function (array $data, $record) {
+                    $tcaaService = new \App\Services\TcaaService();
+                    
+                    // Determine which PLI to use
+                    if (isset($data['pli_id'])) {
+                        // Multiple PLIs - user selected one
+                        $pliId = $data['pli_id'];
+                    } else {
+                        // Single PLI - get the first (and only) one
+                        $pliId = $record->plis()->first()->id;
+                    }
+                    
+                    $pli = \App\Models\Pli::findOrFail($pliId);
+                    $downloadUrl = $tcaaService->generateTcaaUrl($pli, $data['tcaa_type']);
+                    
+                    // Redirect to download
+                    return redirect($downloadUrl);
+                }),
+
+            Action::make('revoke')
+                ->label('Revoke Approval')
+                ->icon('heroicon-o-arrow-uturn-left')
+                ->color('warning')
                 ->requiresConfirmation()
                 ->action(function ($record) {
-                    $record->update(['status' => 'for-approval']);
+                    $record->update(['status' => 'for-review']);
 
                     Notification::make()
                         ->success()
-                        ->title('User Reconsidered')
+                        ->title('Approval Revoked')
                         ->send();
 
                     $this->dispatch('refresh');
                 })
-                // ->visible(! $isEvaluator),
                 ->visible(fn () => !($isEvaluator || $isReviewer)),
         ];
     }

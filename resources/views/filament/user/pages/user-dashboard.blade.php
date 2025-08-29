@@ -1,5 +1,5 @@
 <x-filament-panels::page>
-<div class="fi-section-content p-4 rounded-lg border">
+{{-- <div class="fi-section-content p-4 rounded-lg border">
     <div class="flex items-center gap-x-3">
         <img class="fi-avatar object-cover object-center fi-circular rounded-full h-10 w-10 fi-user-avatar"
              src="https://ui-avatars.com/api/?name={{ urlencode($user->name ?? 'Admin') }}&color=FFFFFF&background=09090b"
@@ -47,17 +47,13 @@
             </button>
         </form>
     </div>
-</div>
+</div> --}}
 
 
 
     {{-- Notification Section --}}
-    <section class="mt-6 p-4 rounded-lg border">
-
-        {{-- Section title --}}
+    {{-- <section class="mt-6 p-4 rounded-lg border">
         <h2 class="text-xl font-bold mb-4">Notifications:</h2>
-
-        {{-- Fieldset container --}}
         <fieldset class="border border-gray-300 rounded-md pt-2 px-4 pb-4">
             <legend class="font-semibold text-gray-700">
                 Accreditation Status:
@@ -123,27 +119,263 @@
             </div>
         </fieldset>
 
-    </section>
+    </section> --}}
 
-{{-- <!-- Notification Section -->
-<div class="mt-6 p-4 rounded-lg border">
+{{-- <section class="mt-6 p-6 rounded-lg border bg-white">
+    <h2 class="text-xl font-bold mb-6">Application Progress</h2>
+    @php
+        $documents = $user->documents;
+        $hasDocForRevision = $documents->where('status', 'for-revision')->isNotEmpty();
 
-    <h3 class="font-semibold text-lg">Notifications:</h3>
-        <p class="mt-1">Accreditation Status:
-        @if ($user->status === 'for-review')
-            <span style="color: #6b7280;">Under Review</span>
-        @elseif ($user->status === 'approved')
-            <span style="color: #16a34a;">Approved</span>
-        @elseif ($user->status === 'rejected')
-            <span style="color: #dc2626;">Rejected</span>
+        // Define steps in order
+        $steps = [
+            'Pending',
+            'Under Evaluation',
+            'Evaluation Pending',
+            'Under Review',
+            'Review Pending',
+            'Under Approval',
+            'Approval Pending',
+            'Final Decision',
+        ];
+
+        // Determine current step
+        if ($user->status === 'pending' && $hasDocForRevision) {
+            // Special pending cases
+            if ($user->evaluator_id === null) {
+                $currentStep = 3; // Evaluation Pending
+                $subStatusNote = 'Evaluation Pending: Registrant action required. Please address the remarks and resubmit the corrected documents.';
+            } elseif ($user->reviewer_id === null) {
+                $currentStep = 5; // Review Pending
+                $subStatusNote = 'Review Pending: Registrant action required. Please address the remarks and resubmit the corrected documents.';
+            } elseif ($user->approver_id === null) {
+                $currentStep = 7; // Approval Pending
+                $subStatusNote = 'Approval Pending: Registrant action required. Please address the remarks and resubmit the corrected documents.';
+            } else {
+                $currentStep = 1; // fallback, shouldn't happen
+                $subStatusNote = null;
+            }
+        } else {
+            // Normal workflow
+            $currentStep = match($user->status) {
+                'pending' => 1,
+                'for-evaluation' => 2,
+                'for-review' => 4,
+                'for-approval' => 6,
+                'approved', 'rejected' => 8,
+                default => 1,
+            };
+            $subStatusNote = null;
+        }
+
+        // Notes for each step
+        $stepNotes = [
+            'Pending' => 'Registrant action required. Please submit all necessary documents.',
+            'Under Evaluation' => 'Your profile and submitted documents are currently under evaluation.',
+            'Evaluation Pending' => 'Registrant action required. Please address the remarks and resubmit the corrected documents.',
+            'Under Review' => 'Your profile and documents have been forwarded for review.',
+            'Review Pending' => 'Registrant action required. Please address the remarks and resubmit the corrected documents.',
+            'Under Approval' => 'Your profile and documents are under approval process.',
+            'Approval Pending' => 'Registrant action required. Please address the remarks and resubmit the corrected documents.',
+            'Final Decision' => $user->status === 'approved'
+                ? 'Your application has been approved.'
+                : 'Your application has been rejected.',
+        ];
+    @endphp
+
+
+    <div class="relative flex justify-between">
+        <div class="absolute top-5 left-0 right-0 h-0.5 bg-gray-300"></div>
+
+        <div class="absolute top-5 left-0 h-0.5 bg-green-500 transition-all duration-500"
+             style="width: calc((100% - 2.5rem) / {{ count($steps) - 1 }} * {{ $currentStep - 1 }} + 0.5rem);">
+        </div>
+
+        @foreach ($steps as $index => $step)
+            <div class="flex flex-col items-center relative z-10 w-full">
+                <div class="w-10 h-10 flex items-center justify-center rounded-full font-semibold
+                    {{ $index + 1 < $currentStep ? 'bg-green-500 text-white' : '' }}
+                    {{ $index + 1 === $currentStep ? 'bg-blue-600 text-white' : '' }}
+                    {{ $index + 1 > $currentStep ? 'bg-gray-300 text-gray-600' : '' }}">
+                    
+                    @if ($index + 1 < $currentStep)
+                        ✓
+                    @else
+                        {{ $index + 1 }}
+                    @endif
+                </div>
+                <span class="mt-2 text-sm font-medium text-center
+                    {{ $index + 1 === $currentStep ? 'text-blue-600' : 'text-gray-600' }}">
+                    {{ $step }}
+                </span>
+            </div>
+        @endforeach
+    </div>
+    <div class="mt-6 p-4 bg-gray-50 border rounded-lg text-sm text-gray-700">
+        @if($subStatusNote)
+            {{ $subStatusNote }}
         @else
-            <span>Unknown</span>
+            {{ $stepNotes[$steps[$currentStep-1]] ?? '' }}
         @endif
-        </p>
-    @if ($user->status === 'for-review')
-        <p>An Administrator is currently validating your submitted documents.</p>
-        <p>This process usually takes 2-3 business days.</p>
-    @endif
-</div> --}}
+    </div>
+</section> --}}
+
+
+
+{{-- <section class="p-6 rounded-lg border bg-white"> --}}
+<x-filament::section>
+    <x-slot name="heading">
+        Accreditation Status:
+            @switch($user->status)
+                @case('for-evaluation')
+                @case('for-review')
+                @case('for-approval')
+
+                @case('pending')
+                    <span class="text-orange-500">Action Required!</span>
+                    @break
+
+                @case('approved')
+                    <span class="text-green-600">Approved</span>
+                    @break
+
+                @case('rejected')
+                    <span class="text-red-600">Rejected</span>
+                    @break
+
+                @default
+                    <span class="text-gray-400">Unknown</span>
+            @endswitch
+        </span>
+    </x-slot>
+
+    @php
+        $documents = $user->documents;
+        $hasDocForRevision = $documents->where('status', 'for-revision')->isNotEmpty();
+
+        // Base steps
+        $steps = [
+            'Pending',
+            'Under Evaluation',
+            'Under Review',
+            'Under Approval',
+            'Result',
+        ];
+
+        // Determine if a special step should be inserted
+        $specialStep = null;
+        $subStatusNote = null;
+
+        if ($user->status === 'pending' && $hasDocForRevision) {
+            if ($user->evaluator_id === null) {
+                $specialStep = 'Registrant-Evaluation Pending';
+                $subStatusNote = 'Registrant action required. Please address the remarks and resubmit the corrected documents.';
+            } elseif ($user->reviewer_id === null) {
+                $specialStep = 'Registrant-Review Pending';
+                $subStatusNote = 'Registrant action required. Please address the remarks and resubmit the corrected documents.';
+            } elseif ($user->approver_id === null) {
+                $specialStep = 'Registrant-Approval Pending';
+                $subStatusNote = 'Registrant action required. Please address the remarks and resubmit the corrected documents.';
+            }
+        }
+
+        // Insert the special step only if it exists
+        if ($specialStep) {
+            switch ($specialStep) {
+                case 'Registrant-Evaluation Pending':
+                    array_splice($steps, 1, 0, [$specialStep]);
+                    break;
+                case 'Registrant-Review Pending':
+                    array_splice($steps, 2, 0, [$specialStep]);
+                    break;
+                case 'Registrant-Approval Pending':
+                    array_splice($steps, 3, 0, [$specialStep]);
+                    break;
+            }
+        }
+
+        // Determine current step index
+        $currentStep = match($user->status) {
+            'pending' => 1,
+            'for-evaluation' => 2,
+            'for-review' => 3,
+            'for-approval' => 4,
+            'approved', 'rejected' => count($steps),
+            default => 1,
+        };
+
+        // Highlight special step if exists
+        if ($specialStep) {
+            $currentStep = array_search($specialStep, $steps) + 1;
+        }
+
+        // Step notes
+        $stepNotes = [
+            'Pending' => 'Registrant action required. Please submit all necessary documents.',
+            'Under Evaluation' => 'Your profile and submitted documents are currently under evaluation.',
+            'Evaluation Pending' => 'Registrant action required. Please address the remarks and resubmit the corrected documents.',
+            'Under Review' => 'Your profile and documents have been forwarded for review.',
+            'Review Pending' => 'Registrant action required. Please address the remarks and resubmit the corrected documents.',
+            'Under Approval' => 'Your profile and documents are under approval process.',
+            'Approval Pending' => 'Registrant action required. Please address the remarks and resubmit the corrected documents.',
+            'Result' => $user->status === 'approved'
+                ? 'Your application has been approved.'
+                : 'Your application has been rejected.',
+        ];
+    @endphp
+
+    <div class="relative flex justify-between">
+        {{-- Connector line --}}
+        <div class="absolute top-5 left-0 right-0 h-0.5 bg-gray-300"></div>
+        <div class="absolute top-5 left-0 h-0.5 bg-green-500 transition-all duration-500"
+             style="width: calc((100% - 2.5rem) / {{ count($steps) - 1 }} * {{ $currentStep - 1 }} + 0.5rem);">
+        </div>
+
+        @foreach ($steps as $index => $step)
+            <div class="flex flex-col items-center relative z-10 w-full">
+                {{-- Step Circle --}}
+                <div class="w-10 h-10 flex items-center justify-center rounded-full font-semibold
+                    {{ $index + 1 < $currentStep ? 'bg-green-500 text-white' : '' }}
+                    {{ $index + 1 === $currentStep ? 'bg-yellow-600 text-white' : '' }}
+                    {{ $index + 1 > $currentStep ? 'bg-gray-300 text-gray-600' : '' }}">
+                    @if ($step === 'Result')
+                        @if ($user->status === 'approved')
+                            <span class="text-white">✓</span>
+                            {{-- <div class="w-10 h-10 flex items-center justify-center rounded-full bg-green-500 font-semibold"></div> --}}
+                        @elseif ($user->status === 'rejected')
+                            <span class="text-white">✗</span>
+                            {{-- <div class="w-10 h-10 flex items-center justify-center rounded-full bg-red-600 font-semibold"></div> --}}
+                        @else
+                            {{ $index + 1 }}
+                        @endif
+                    @elseif ($index + 1 < $currentStep)
+                        ✓
+                    @elseif ($step === $specialStep)
+                        {{-- Show action icon for special step --}}
+                        !
+                    @else
+                        {{ $index + 1 }}
+                    @endif
+                </div>
+
+                {{-- Step Label --}}
+                <span class="mt-2 text-sm font-medium text-center
+                    {{ $index + 1 === $currentStep ? 'text-blue-600' : 'text-gray-600' }}">
+                    {{ $step }}
+                </span>
+            </div>
+        @endforeach
+    </div>
+
+    {{-- Step Note --}}
+    <div class="mt-6 p-4 bg-gray-50 border rounded-lg text-sm text-gray-700">
+        {{ $subStatusNote ?? $stepNotes[$steps[$currentStep-1]] ?? '' }}
+    </div>
+    
+</x-filament::section>
+{{-- </section> --}}
+
+
+
 
 </x-filament-panels::page>

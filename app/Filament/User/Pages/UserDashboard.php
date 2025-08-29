@@ -1,16 +1,5 @@
 <?php
 
-// namespace App\Filament\User\Pages;
-
-// use Filament\Pages\Page;
-
-// class UserDashboard extends Page
-// {
-//     protected static ?string $navigationIcon = 'heroicon-o-document-text';
-
-//     protected static string $view = 'filament.user.pages.user-dashboard';
-// }
-
 namespace App\Filament\User\Pages;
 
 use Filament\Pages\Page;
@@ -40,6 +29,7 @@ class UserDashboard extends Page
 
     public function getTitle(): string
     {
-        return 'Welcome!';
+        // return 'Welcome!';
+        return 'Home';
     }
 }

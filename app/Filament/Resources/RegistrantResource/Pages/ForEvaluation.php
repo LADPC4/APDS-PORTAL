@@ -231,8 +231,8 @@ class ForEvaluation extends ListRecords
                     
                     $record->update([
                         'status'       => 'for-review',
-                        'evaluator_id' => Auth::id(), // 👈 save evaluator automatically
-                        'eval_date'    => now(),      // 👈 save timestamp
+                        'evaluator_id' => Auth::id(), 
+                        'eval_date'    => now(),      
                     ]);
 
                     Notification::make()

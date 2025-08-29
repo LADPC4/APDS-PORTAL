@@ -78,7 +78,7 @@
         </x-filament::section>
 
         {{-- Authorized Representatives --}}
-        {{-- <x-filament::section>
+        <x-filament::section>
             <x-slot name="heading">Authorized Representatives</x-slot>
 
             <div class="overflow-x-auto">
@@ -109,10 +109,20 @@
                     @endforeach
                 </div>
             </div>
-        </x-filament::section> --}}
+            
+            @if ($this->status === 'approved')
+                <div class="pt-4 text-sm text-gray-600 italic">
+                    Based on the recommendation of the Board in line with the Terms and Condition 
+                    of the APDS Accreditation and Re-accreditation. 
+                    <br>
+                    Any edits or changes are subject to admin approval, 
+                    and uploading of approval documents from the Board is required.
+                </div>
+            @endif
+        </x-filament::section>
 
         {{-- Head Officers --}}
-        <x-filament::section>
+        {{-- <x-filament::section>
             <x-slot name="heading">Head Officers</x-slot>
 
             <div class="overflow-x-auto">
@@ -136,7 +146,6 @@
 
                             @foreach ([1, 2] as $rep)
                                 <div class="col-span-4">
-                                    {{-- {{ $this->{"ho{$rep}_$key"} ?? '—' }} --}}
                                     @if ($key === 'designation')
                                         @if ($this->{"ho{$rep}_designation"} === 'Other')
                                             {{ $this->{"ho{$rep}_designation_other"} ?? '—' }}
@@ -153,7 +162,7 @@
                     @endforeach
                 </div>
             </div>
-        </x-filament::section>
+        </x-filament::section> --}}
 
         {{-- Compliance Officers --}}
         <x-filament::section>
